@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>QR — LABX</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- مكتبة QR -->
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+
+    <style>
+        .qr-box {
+            background: white;
+            padding: 28px;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.10);
+            text-align: center;
+            max-width: 400px;
+            margin: 40px auto;
+            animation: formAppear 0.7s ease-out forwards;
+            opacity: 0;
+        }
+
+        .qr-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--green-main);
+        }
+
+        .qr-info {
+            color: var(--text-muted);
+            margin-top: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .qr-img {
+            width: 230px;
+            height: 230px;
+            margin: 12px auto;
+            border-radius: 12px;
+            border: 3px solid var(--green-main);
+            background: #fff;
+            padding: 6px;
+        }
+
+        .btn-small {
+            padding: 10px 16px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body class="page-enter">
+
+<div class="layout">
+
+    <header class="top-header">
+        <div class="top-header-right">
+            <img src="labx.jpeg" class="logo-img">
+            <div>
+                <div class="brand-title">LABX Dental</div>
+                <div class="brand-sub">QR Code</div>
+            </div>
+        </div>
+
+        <div class="top-header-left">
+            <button onclick="history.back()" class="btn">رجوع</button>
+        </div>
+    </header>
+
+    <div id="qrBox" class="qr-box">
+        <div class="qr-title fade-item">تحميل البيانات...</div>
+    </div>
+
+</div>
+
+
+<!-- 🔥 Firebase -->
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, getDoc } 
+from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+
+// 🔹 1) نأخذ ID الحالة من الرابط
+const params = new URLSearchParams(window.location.search);
+const caseId = params.get("id");
+
+
+// 🔹 2) جلب بيانات الحالة
+async function loadCase() {
+    const caseRef = doc(db, "cases", caseId);
+    const snap = await getDoc(caseRef);
+
+    if (!snap.exists()) {
+        document.getElementById("qrBox").innerHTML = `
+            <div class='qr-title'>❌ لا توجد حالة بهذا الرقم</div>
+        `;
+        return;
+    }
+
+    const data = snap.data();
+
+    // 🔹 3) إنشاء QR
+    const qr = new QRious({
+        value: data.qrValue,
+        size: 220,
+        level: "H"
+    });
+
+    // 🔹 4) عرض البيانات والـ QR
+    document.getElementById("qrBox").innerHTML = `
+        <div class="qr-title fade-item">كود الحالة</div>
+
+        <canvas id="qrCanvas" class="qr-img card-medium"></canvas>
+
+        <div class="qr-info fade-item">
+            <strong>${data.patientName}</strong><br>
+            رقم الملف: ${data.fileNumber} <br>
+            العيادة: ${data.clinicNumber}
+        </div>
+
+        <button class="btn btn-small" onclick="saveQR()">💾 حفظ QR</button>
+        <button class="btn btn-small" onclick="copyQR()">📋 نسخ القيمة</button>
+    `;
+
+    const canvas = document.getElementById("qrCanvas");
+    canvas.getContext("2d").drawImage(qr.image, 0, 0, 220, 220);
+}
+
+loadCase();
+
+
+// 🔹 5) زر حفظ QR
+window.saveQR = function () {
+    const canvas = document.getElementById("qrCanvas");
+    const link = document.createElement("a");
+    link.download = "labx-qr.png";
+    link.href = canvas.toDataURL();
+    link.click();
+};
+
+
+// 🔹 6) نسخ قيمة QR
+window.copyQR = function () {
+    navigator.clipboard.writeText("LABX-" + caseId);
+    alert("✔ تم نسخ رمز الـ QR");
+};
+</script>
+
+
+</body>
+</html>
