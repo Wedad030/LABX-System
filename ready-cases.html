@@ -31,39 +31,75 @@
     <main class="main-card fade-in">
 
         <h2>الحالات الجاهزة للتسليم</h2>
+        <p id="readyCount" class="role-badge"></p>
 
-        <div id="readyCasesContainer" class="tiles-grid"></div>
+        <div id="readyCasesContainer" class="tiles-grid slide-up"></div>
 
-        <h2 style="margin-top:25px;">توزيع الحالات على العيادات</h2>
+        <hr style="margin:30px 0;opacity:0.2;">
 
-        <!-- RDC1 -->
-        <h3>RDC1</h3>
-        <div class="tiles-grid" id="rdc1">
-            <button class="tile" onclick="moveToBox('RDC1 - BOX 1')">BOX 1</button>
-            <button class="tile" onclick="moveToBox('RDC1 - BOX 2')">BOX 2</button>
-            <button class="tile" onclick="moveToBox('RDC1 - BOX 3')">BOX 3</button>
-            <button class="tile" onclick="moveToBox('RDC1 - BOX 4')">BOX 4</button>
-        </div>
+        <h2>توزيع الحالات على العيادات</h2>
 
-        <!-- RDC2 -->
-        <h3 style="margin-top:20px;">RDC2</h3>
-        <div class="tiles-grid" id="rdc2">
-            <button class="tile" onclick="moveToBox('RDC2 - BOX 1')">BOX 1</button>
-            <button class="tile" onclick="moveToBox('RDC2 - BOX 2')">BOX 2</button>
-            <button class="tile" onclick="moveToBox('RDC2 - BOX 3')">BOX 3</button>
-        </div>
+        <!-- BOXES SECTION -->
+        <div id="boxesSection">
 
-        <!-- تخصصات -->
-        <h3 style="margin-top:20px;">التخصصات</h3>
-        <div class="tiles-grid" id="specialty">
-            <button class="tile" onclick="moveToBox('المؤقت')">المؤقت</button>
-            <button class="tile" onclick="moveToBox('المتحرك')">المتحرك</button>
-            <button class="tile" onclick="moveToBox('PFM')">PFM</button>
-            <button class="tile" onclick="moveToBox('CAD/CAM')">CAD/CAM</button>
+            <h3>RDC1</h3>
+            <div class="tiles-grid">
+                <button class="tile" onclick="moveToBox('RDC1 - BOX 1')">
+                    RDC1 - BOX 1 <span id="c_rdc1_1">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('RDC1 - BOX 2')">
+                    RDC1 - BOX 2 <span id="c_rdc1_2">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('RDC1 - BOX 3')">
+                    RDC1 - BOX 3 <span id="c_rdc1_3">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('RDC1 - BOX 4')">
+                    RDC1 - BOX 4 <span id="c_rdc1_4">(0)</span>
+                </button>
+            </div>
+
+            <h3 style="margin-top:20px;">RDC2</h3>
+            <div class="tiles-grid">
+                <button class="tile" onclick="moveToBox('RDC2 - BOX 1')">
+                    RDC2 - BOX 1 <span id="c_rdc2_1">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('RDC2 - BOX 2')">
+                    RDC2 - BOX 2 <span id="c_rdc2_2">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('RDC2 - BOX 3')">
+                    RDC2 - BOX 3 <span id="c_rdc2_3">(0)</span>
+                </button>
+            </div>
+
+            <h3 style="margin-top:20px;">التخصصات</h3>
+            <div class="tiles-grid">
+                <button class="tile" onclick="moveToBox('المؤقت')">
+                    المؤقت <span id="c_temp">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('المتحرك')">
+                    المتحرك <span id="c_move">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('PFM')">
+                    PFM <span id="c_pfm">(0)</span>
+                </button>
+
+                <button class="tile" onclick="moveToBox('CAD/CAM')">
+                    CAD/CAM <span id="c_cad">(0)</span>
+                </button>
+            </div>
+
         </div>
 
     </main>
 </div>
+
 
 <script>
 document.getElementById("username").innerText =
@@ -71,24 +107,72 @@ document.getElementById("username").innerText =
 
 let cases = JSON.parse(localStorage.getItem("labxNewCases")) || [];
 
-// عرض الحالات الجاهزة فقط
+const techColors = {
+    "قاسم عسيري": "#3b82f6",
+    "أحمد كوشان": "#3b82f6",
+    "عبدالله الرشيد": "#3b82f6",
+    "عبدالله الشهراني": "#3b82f6",
+    "أحمد القحطاني": "#3b82f6",
+    "يحيى عسيري": "#3b82f6",
+
+    "سلطان الاحمري": "#8b5cf6",
+    "أيمن الشهري": "#8b5cf6",
+    "فيصل الوادعي": "#8b5cf6",
+
+    "تركي الشهري": "#14b8a6",
+    "وليد الشهري": "#14b8a6",
+    "أسامة عسيري": "#14b8a6",
+
+    "رشيد الكثيري": "#22c55e",
+    "أحمد الصخري": "#22c55e",
+    "عبداللطيف عسيري": "#22c55e",
+    "محمد الشرفان": "#22c55e",
+    "الاء": "#22c55e",
+    "هيام": "#22c55e",
+    "محمد الغامدي": "#22c55e",
+    "منصور العويرضي": "#22c55e",
+    "عبدالله الغامدي": "#22c55e",
+
+    "احمد الشبل": "#f59e0b",
+    "وليد السويري": "#f59e0b",
+    "فهد العتيبي": "#f59e0b",
+    "عبدالله العود": "#f59e0b",
+
+    "فهد الخميس": "#6b7280"
+};
+
+
+// عرض الحالات الجاهزة
 function showReadyCases() {
     const container = document.getElementById("readyCasesContainer");
     container.innerHTML = "";
 
     const readyCases = cases.filter(c => c.status === "جاهزة");
 
+    document.getElementById("readyCount").innerText =
+        `عدد الحالات الجاهزة الآن: ${readyCases.length}`;
+
     readyCases.forEach(c => {
         const div = document.createElement("div");
         div.className = "tile";
+        div.style.borderRight = `8px solid ${techColors[c.technicianName] || "#0f766e"}`;
+
         div.innerHTML = `
             <h3>${c.patientName}</h3>
             <p>رقم الملف: ${c.fileNumber}</p>
+            <p>نوع الحالة: ${c.caseType}</p>
             <p>الفني: ${c.technicianName}</p>
-            <p style="font-size:12px;color:#555">جاهزة منذ: ${c.readyTime}</p>
-            <button class="btn-logout" style="margin-top:10px;background:#163a43;"
+            <p style="font-size:12px;color:#64748b;">جاهزة منذ: ${c.readyTime}</p>
+
+            <button class="btn-logout"
+                style="background:#0f8f5e;margin-top:10px;width:100%;"
                 onclick="selectCase('${c.fileNumber}')">اختيار</button>
+
+            <button class="btn-logout"
+                style="background:#163a43;margin-top:10px;width:100%;"
+                onclick="viewQR('${c.fileNumber}')">عرض QR</button>
         `;
+
         container.appendChild(div);
     });
 }
@@ -97,13 +181,12 @@ let selectedCase = null;
 
 function selectCase(file) {
     selectedCase = file;
-    alert("✔ تم اختيار الحالة — الآن حددي البوكس المناسبة.");
+    alert("✔ تم اختيار الحالة — اختاري الآن البوكس المناسب.");
 }
 
-// نقل الحالة إلى بوكس معيّن
 function moveToBox(boxName) {
     if (!selectedCase) {
-        alert("⚠️ يرجى اختيار حالة أولاً.");
+        alert("⚠ يرجى اختيار حالة أولاً.");
         return;
     }
 
@@ -115,12 +198,43 @@ function moveToBox(boxName) {
 
     localStorage.setItem("labxNewCases", JSON.stringify(cases));
 
-    alert("✅ تم نقل الحالة إلى: " + boxName);
+    alert("✔ تم توزيع الحالة إلى: " + boxName);
     selectedCase = null;
     showReadyCases();
+    countBoxes();
+}
+
+function countBoxes() {
+    const dist = cases.filter(c => c.status === "تم توزيعها");
+
+    const counters = {
+        "RDC1 - BOX 1": "c_rdc1_1",
+        "RDC1 - BOX 2": "c_rdc1_2",
+        "RDC1 - BOX 3": "c_rdc1_3",
+        "RDC1 - BOX 4": "c_rdc1_4",
+
+        "RDC2 - BOX 1": "c_rdc2_1",
+        "RDC2 - BOX 2": "c_rdc2_2",
+        "RDC2 - BOX 3": "c_rdc2_3",
+
+        "المؤقت": "c_temp",
+        "المتحرك": "c_move",
+        "PFM": "c_pfm",
+        "CAD/CAM": "c_cad"
+    };
+
+    for (const box in counters) {
+        const count = dist.filter(c => c.assignedBox === box).length;
+        document.getElementById(counters[box]).innerText = `(${count})`;
+    }
+}
+
+function viewQR(fileNumber) {
+    window.location.href = `case-details.html?file=${fileNumber}`;
 }
 
 showReadyCases();
+countBoxes();
 </script>
 
 </body>
