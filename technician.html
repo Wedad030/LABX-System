@@ -7,18 +7,20 @@
 </head>
 
 <body class="bg">
-    <script>
-// حماية النظام
+
+<script>
+// حماية تسجيل الدخول
 if (localStorage.getItem("labxLogged") !== "true") {
     window.location.href = "login.html";
 }
 </script>
+
 <div class="layout">
 
-    <!-- هيدر الصفحة -->
+    <!-- الهيدر -->
     <header class="top-header">
         <div class="top-header-right">
-            <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
+            <img src="labx.jpeg" class="logo-img">
             <div class="brand-text">
                 <div class="brand-title">LABX DENTAL</div>
                 <div class="brand-sub">لوحة الفني</div>
@@ -26,86 +28,61 @@ if (localStorage.getItem("labxLogged") !== "true") {
         </div>
 
         <div class="top-header-left">
-            <button onclick="window.location.href='index.html'"
-                    class="btn-logout" style="background:#0f766e;">
-                رجوع
-            </button>
+            <button onclick="logout()" class="btn-logout">تسجيل خروج</button>
         </div>
     </header>
 
-
-    <!-- محتوى الصفحة -->
+    <!-- المحتوى -->
     <main class="main-card fade-in">
+        <h2 style="margin-bottom:15px;">🔧 الحالات تحت الإجراء</h2>
 
-        <h2 style="margin-bottom:15px;">الحالات تحت الإجراء</h2>
-
-        <div id="vacationAlert"
-             style="padding:10px;background:#fed7aa;border-radius:10px;color:#b45309;display:none;">
-            ⚠ يوجد فني في إجازة حالياً
-        </div>
-
-        <div id="casesContainer" class="tiles-grid"></div>
-
+        <div id="casesContainer" class="tiles-grid slide-up"></div>
     </main>
 
 </div>
 
-
 <script>
-// ---------------------------------------------------------
-// جلب الفنيين + الإجازات من الإعدادات
-// ---------------------------------------------------------
-let techList = JSON.parse(localStorage.getItem("techList") || "[]");
-let vacList = JSON.parse(localStorage.getItem("vacList") || "[]");
-
-let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+function logout() {
+    localStorage.removeItem("labxLogged");
+    window.location.href = "login.html";
+}
+</script>
 
 
-// تحويل قائمة الفنيين إلى خريطة (اسم → لون)
-const techColors = {};
-techList.forEach(t => {
-    techColors[t.name] = t.color;
-});
+<!--  الربط مع Firebase -->
+<script type="module">
+import { getAllCases, updateCaseStatus } from "./firebase.js";
 
+// تحميل الحالات من Firebase
+async function loadCases() {
+    const cases = await getAllCases();
+    renderCases(cases);
+}
 
-// ---------------------------------------------------------
-// عرض الحالات
-// ---------------------------------------------------------
-function renderCases() {
+// رسم الكروت
+function renderCases(cases) {
     const container = document.getElementById("casesContainer");
     container.innerHTML = "";
 
-    const underProcess = cases.filter(c => c.status === "تحت الإجراء");
-
-    underProcess.forEach(c => {
-
-        // هل هذا الفني في إجازة؟
-        let isVacation = vacList.includes(c.technicianName);
+    cases.forEach(c => {
+        if (c.status !== "تحت الإجراء") return;
 
         const card = document.createElement("div");
         card.className = "tile";
 
-        // إضافة اللون حسب الفني
-        let color = techColors[c.technicianName] || "#0f766e";
-        card.style.borderRight = `10px solid ${color}`;
-
         card.innerHTML = `
             <h3>${c.patientName}</h3>
-            <p>رقم الملف: ${c.fileNumber}</p>
-            <p>الفني: ${c.technicianName}</p>
-            <p>نوع الحالة: ${c.caseType}</p>
-            <p style="font-size:12px;color:#64748b;">وقت الدخول: ${c.createdAt}</p>
+            <p>📁 رقم الملف: ${c.fileNumber}</p>
+            <p>🏥 العيادة: ${c.clinicNumber}</p>
+            <p>👨‍🔧 الفني: ${c.technicianName}</p>
+            <p style="color:#64748b;font-size:12px;">
+                منذ: ${new Date(c.createdAt).toLocaleString()}
+            </p>
 
-            ${isVacation ? `<p style="color:#ea580c;font-weight:bold;">⚠ الفني في إجازة</p>` : ""}
-
-            <button onclick="markAsEdited(${c.id})"
-                    class="btn-logout" style="background:#0f172a;margin-top:10px;width:100%;">
-                تعديل الحالة
-            </button>
-
-            <button onclick="markAsReady(${c.id})"
-                    class="btn-logout" style="background:#0f766e;margin-top:10px;width:100%;">
-                جاهزة للتسليم ✔
+            <button onclick="markAsReady('${c.id}')" 
+                    class="btn-logout" 
+                    style="background:#0f766e;width:100%;margin-top:10px;">
+                ✓ جاهزة للتسليم
             </button>
         `;
 
@@ -113,179 +90,18 @@ function renderCases() {
     });
 }
 
+// جعل الدالة متاحة لجميع الأزرار
+window.markAsReady = async function(id) {
+    await updateCaseStatus(id, "جاهزة");
+    alert("✓ الحالة أصبحت جاهزة للتسليم");
 
-// ---------------------------------------------------------
-// دالة تعديل الحالة
-// ---------------------------------------------------------
-function markAsEdited(id) {
-    let index = cases.findIndex(c => c.id === id);
-    if (index > -1) {
-        cases[index].isEdited = true;
-        localStorage.setItem("labxNewCases", JSON.stringify(cases));
-        alert("✔ تم إرسال الحالة كتعديل");
-        renderCases();
-    }
-}
-
-
-// ---------------------------------------------------------
-// دالة جاهزية الحالة
-// ---------------------------------------------------------
-function markAsReady(id) {
-    let index = cases.findIndex(c => c.id === id);
-    if (index > -1) {
-        cases[index].status = "جاهزة";
-        cases[index].readyTime = new Date().toLocaleString();
-
-       function markAsReady(id) {
-    let index = cases.findIndex(c => c.id === id);
-    if (index > -1) {
-        cases[index].status = "جاهزة";
-        cases[index].readyTime = new Date().toLocaleString();
-
-        alert("✓ الحالة أصبحت جاهزة للتسليم");
-        renderCases(cases);
-    }
-}
-        alert("✔ الحالة أصبحت جاهزة للتسليم");
-        renderCases();
-    }
-}
-
-
-// ---------------------------------------------------------
-// تنبيه الإجازات
-// ---------------------------------------------------------
-function checkVacation() {
-    if (vacList.length > 0) {
-        document.getElementById("vacationAlert").style.display = "block";
-    }
-}
-
-
-// تشغيل الصفحة
-renderCases();
-checkVacation();
-
-</script>
-<!-- ... باقي الصفحة ... -->
-
-
-<script type="module">
-import { getCasesFromCloud, markCaseAsEdited } from "./firebase.js";
-
-const container = document.getElementById("casesContainer");
-const vacationAlert = document.getElementById("vacationAlert");
-
-// ألوان الفنيين بعد ربط Firebase
-const techColors = {
-  "قاسم عسيري": { main: "#3bb2f6", edited: "#22c55e" },
-  "أحمد كوشان": { main: "#3bb2f6", edited: "#22c55e" },
-  "عبدالله الرشيد": { main: "#3bb2f6", edited: "#22c55e" },
-  "عبدالله الشهراني": { main: "#3bb2f6", edited: "#22c55e" },
-  "أحمد القحطاني": { main: "#3bb2f6", edited: "#22c55e" },
-  "يحيى عسيري": { main: "#3bb2f6", edited: "#22c55e" },
-
-  // PFM
-  "سلطان الاحمري": { main: "#8b5cf6", edited: "#22c55e" },
-  "أيمن الشهري": { main: "#8b5cf6", edited: "#22c55e" },
-  "فيصل الوادعي": { main: "#8b5cf6", edited: "#22c55e" },
-
-  // Ortho
-  "تركي الشهري": { main: "#14b8a6", edited: "#22c55e" },
-  "وليد الشهري": { main: "#14b8a6", edited: "#22c55e" },
-  "أسامة عسيري": { main: "#14b8a6", edited: "#22c55e" },
-
-  // متحرك
-  "رشيد الكثيري": { main: "#22c55e", edited: "#84cc16" },
-  "أحمد الصخري": { main: "#22c55e", edited: "#84cc16" },
-  "عبداللطيف عسيري": { main: "#22c55e", edited: "#84cc16" },
-  "محمد الشرفان": { main: "#22c55e", edited: "#84cc16" },
-  "الاء": { main: "#22c55e", edited: "#84cc16" },
-  "هيام": { main: "#22c55e", edited: "#84cc16" },
-  "محمد الغامدي": { main: "#22c55e", edited: "#84cc16" },
-  "منصور العويرضي": { main: "#22c55e", edited: "#84cc16" },
-  "عبدالله الغامدي": { main: "#22c55e", edited: "#84cc16" },
-
-  // مؤقت
-  "احمد الشبل": { main: "#f59e0b", edited: "#22c55e" },
-  "وليد السويري": { main: "#f59e0b", edited: "#22c55e" },
-  "فهد العتيبي": { main: "#f59e0b", edited: "#22c55e" },
-  "عبدالله العود": { main: "#f59e0b", edited: "#22c55e" },
-
-  // الصب
-  "فهد الخميس": { main: "#b67b28", edited: "#22c55e" }
+    loadCases();
 };
 
-// قائمة الإجازات
-const vacationList = ["تركي الشهري", "سلطان الاحمري", "يحيى عسيري"];
-
-async function loadCases() {
-  const cases = await getCasesFromCloud();
-  renderCases(cases);
-  checkVacation(cases);
-}
-
-function renderCases(cases) {
-  container.innerHTML = "";
-
-  cases.forEach(c => {
-    const isVacation = vacationList.includes(c.technicianName);
-
-    const card = document.createElement("div");
-    card.className = "tile";
-
-    const colors = techColors[c.technicianName] || { main: "#0f766e", edited: "#22c55e" };
-    card.style.borderRight = `8px solid ${colors.main}`;
-
-    if (c.isEdited) {
-      card.style.borderRight = `8px solid ${colors.edited}`;
-    }
-
-    card.innerHTML = `
-      <h3>${c.patientName}</h3>
-      <p>📁 رقم الملف: ${c.fileNumber}</p>
-      <p>👨‍🔧 الفني: ${c.technicianName}</p>
-      <p style="font-size:11px;color:#64748b">${new Date(c.createdAt).toLocaleString()}</p>
-      ${isVacation ? '<p style="color:red;font-weight:bold">⚠ الفني إجازة</p>' : ""}
-      <button onclick="editCase('${c.id}')" class="btn-logout" style="width:100%;margin-top:10px;background:#0f766e">تحديد كـ تعديل</button>
-    `;
-
-    container.appendChild(card);
-  });
-}
-
-window.editCase = async function(id) {
-  await markCaseAsEdited(id);
-  alert("تم تحديث الحالة ✔");
-  loadCases();
-};
-
-function checkVacation(cases) {
-  const hasVacationCase = cases.some(c => vacationList.includes(c.technicianName));
-  if (hasVacationCase) {
-    vacationAlert.style.display = "block";
-  }
-}
-
+// تشغيل أول ما تفتح الصفحة
 loadCases();
-</script>    
-<script src="app.js"></script>
-<script type="module" src="firebase.js"></script>
-    <script type="module">
-import { getAllCases } from "./firebase.js";
 
-async function loadCases() {
-    const cases = await getAllCases();
-
-    // نفس الكود اللي عندك أصلاً لتوزيع الألوان والكارودز
-    renderCases(cases);
-}
-
-loadCases();
 </script>
-</body>
-</html>
 
 </body>
 </html>
