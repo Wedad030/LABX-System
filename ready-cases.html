@@ -15,147 +15,71 @@
             <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
             <div class="brand-text">
                 <div class="brand-title">LABX DENTAL</div>
-                <div class="brand-sub">الحالات الجاهزة</div>
+                <div class="brand-sub">Ready Cases</div>
             </div>
         </div>
 
         <div class="top-header-left">
-            <div class="user-info">
-                <span class="hello">👋 أهلاً </span>
-                <span id="username" class="user-name"></span>
-            </div>
+            <button onclick="window.location.href='index.html'"
+                    class="btn-logout" style="background:#0f766e;">
+                رجوع
+            </button>
         </div>
     </header>
+
 
     <!-- المحتوى -->
     <main class="main-card fade-in">
 
-        <h2>الحالات الجاهزة للتسليم</h2>
+        <h2 style="text-align:center;">الحالات الجاهزة للتسليم</h2>
         <p id="readyCount" class="role-badge"></p>
 
-        <div id="readyCasesContainer" class="tiles-grid slide-up"></div>
+        <div id="readyCasesContainer" class="tiles-grid"></div>
 
         <hr style="margin:30px 0;opacity:0.2;">
 
         <h2>توزيع الحالات على العيادات</h2>
 
-        <!-- BOXES SECTION -->
-        <div id="boxesSection">
-
-            <h3>RDC1</h3>
-            <div class="tiles-grid">
-                <button class="tile" onclick="moveToBox('RDC1 - BOX 1')">
-                    RDC1 - BOX 1 <span id="c_rdc1_1">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('RDC1 - BOX 2')">
-                    RDC1 - BOX 2 <span id="c_rdc1_2">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('RDC1 - BOX 3')">
-                    RDC1 - BOX 3 <span id="c_rdc1_3">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('RDC1 - BOX 4')">
-                    RDC1 - BOX 4 <span id="c_rdc1_4">(0)</span>
-                </button>
-            </div>
-
-            <h3 style="margin-top:20px;">RDC2</h3>
-            <div class="tiles-grid">
-                <button class="tile" onclick="moveToBox('RDC2 - BOX 1')">
-                    RDC2 - BOX 1 <span id="c_rdc2_1">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('RDC2 - BOX 2')">
-                    RDC2 - BOX 2 <span id="c_rdc2_2">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('RDC2 - BOX 3')">
-                    RDC2 - BOX 3 <span id="c_rdc2_3">(0)</span>
-                </button>
-            </div>
-
-            <h3 style="margin-top:20px;">التخصصات</h3>
-            <div class="tiles-grid">
-                <button class="tile" onclick="moveToBox('المؤقت')">
-                    المؤقت <span id="c_temp">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('المتحرك')">
-                    المتحرك <span id="c_move">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('PFM')">
-                    PFM <span id="c_pfm">(0)</span>
-                </button>
-
-                <button class="tile" onclick="moveToBox('CAD/CAM')">
-                    CAD/CAM <span id="c_cad">(0)</span>
-                </button>
-            </div>
-
-        </div>
+        <div id="dynamicBoxes"></div>
 
     </main>
 </div>
 
 
 <script>
-document.getElementById("username").innerText =
-    localStorage.getItem("labxUser") || "User";
+// ------------------------------------------------------------
+// جلب الإعدادات من صفحة Settings
+// ------------------------------------------------------------
+let techList = JSON.parse(localStorage.getItem("techList") || "[]");
+let deptList = JSON.parse(localStorage.getItem("deptList") || "[]");
+let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
 
-let cases = JSON.parse(localStorage.getItem("labxNewCases")) || [];
-
-const techColors = {
-    "قاسم عسيري": "#3b82f6",
-    "أحمد كوشان": "#3b82f6",
-    "عبدالله الرشيد": "#3b82f6",
-    "عبدالله الشهراني": "#3b82f6",
-    "أحمد القحطاني": "#3b82f6",
-    "يحيى عسيري": "#3b82f6",
-
-    "سلطان الاحمري": "#8b5cf6",
-    "أيمن الشهري": "#8b5cf6",
-    "فيصل الوادعي": "#8b5cf6",
-
-    "تركي الشهري": "#14b8a6",
-    "وليد الشهري": "#14b8a6",
-    "أسامة عسيري": "#14b8a6",
-
-    "رشيد الكثيري": "#22c55e",
-    "أحمد الصخري": "#22c55e",
-    "عبداللطيف عسيري": "#22c55e",
-    "محمد الشرفان": "#22c55e",
-    "الاء": "#22c55e",
-    "هيام": "#22c55e",
-    "محمد الغامدي": "#22c55e",
-    "منصور العويرضي": "#22c55e",
-    "عبدالله الغامدي": "#22c55e",
-
-    "احمد الشبل": "#f59e0b",
-    "وليد السويري": "#f59e0b",
-    "فهد العتيبي": "#f59e0b",
-    "عبدالله العود": "#f59e0b",
-
-    "فهد الخميس": "#6b7280"
-};
+// تحويل قائمة الفنيين إلى خريطة (الفني → اللون)
+let techColors = {};
+techList.forEach(t => {
+    techColors[t.name] = t.color;
+});
 
 
-// عرض الحالات الجاهزة
+// ------------------------------------------------------------
+// عرض الحالات الجاهزة بصناديق ملونة حسب الفني
+// ------------------------------------------------------------
 function showReadyCases() {
     const container = document.getElementById("readyCasesContainer");
     container.innerHTML = "";
 
-    const readyCases = cases.filter(c => c.status === "جاهزة");
+    const ready = cases.filter(c => c.status === "جاهزة");
 
     document.getElementById("readyCount").innerText =
-        `عدد الحالات الجاهزة الآن: ${readyCases.length}`;
+        `عدد الحالات الجاهزة الآن: ${ready.length}`;
 
-    readyCases.forEach(c => {
+    ready.forEach(c => {
+
+        let color = techColors[c.technicianName] || "#0f766e";
+
         const div = document.createElement("div");
         div.className = "tile";
-        div.style.borderRight = `8px solid ${techColors[c.technicianName] || "#0f766e"}`;
+        div.style.borderRight = `10px solid ${color}`;
 
         div.innerHTML = `
             <h3>${c.patientName}</h3>
@@ -164,33 +88,65 @@ function showReadyCases() {
             <p>الفني: ${c.technicianName}</p>
             <p style="font-size:12px;color:#64748b;">جاهزة منذ: ${c.readyTime}</p>
 
-            <button class="btn-logout"
-                style="background:#0f8f5e;margin-top:10px;width:100%;"
-                onclick="selectCase('${c.fileNumber}')">اختيار</button>
+            <button onclick="selectCase('${c.fileNumber}')"
+                    class="btn-logout" style="background:#0f766e;margin-top:10px;width:100%;">
+                اختيار
+            </button>
 
-            <button class="btn-logout"
-                style="background:#163a43;margin-top:10px;width:100%;"
-                onclick="viewQR('${c.fileNumber}')">عرض QR</button>
+            <button onclick="viewQR('${c.fileNumber}')"
+                    class="btn-logout" style="background:#0f172a;margin-top:10px;width:100%;">
+                عرض QR
+            </button>
         `;
 
         container.appendChild(div);
     });
 }
 
-let selectedCase = null;
 
+// ------------------------------------------------------------
+// اختيار حالة ليتم توزيعها
+// ------------------------------------------------------------
+let selectedCase = null;
 function selectCase(file) {
     selectedCase = file;
     alert("✔ تم اختيار الحالة — اختاري الآن البوكس المناسب.");
 }
 
+
+// ------------------------------------------------------------
+// إنشاء صناديق التوزيع ديناميكيًا من الأقسام
+// ------------------------------------------------------------
+function createDynamicBoxes() {
+    const boxContainer = document.getElementById("dynamicBoxes");
+    boxContainer.innerHTML = "";
+
+    deptList.forEach(dept => {
+        let box = document.createElement("div");
+        box.className = "tiles-grid";
+
+        box.innerHTML = `
+            <h3 style="margin-top:20px;">${dept}</h3>
+            <button class="tile" onclick="moveToBox('${dept}')">
+                ${dept}
+            </button>
+        `;
+
+        boxContainer.appendChild(box);
+    });
+}
+
+
+// ------------------------------------------------------------
+// نقل الحالة إلى القسم المختار
+// ------------------------------------------------------------
 function moveToBox(boxName) {
     if (!selectedCase) {
         alert("⚠ يرجى اختيار حالة أولاً.");
         return;
     }
 
-    const index = cases.findIndex(c => c.fileNumber === selectedCase);
+    let index = cases.findIndex(c => c.fileNumber === selectedCase);
 
     cases[index].assignedBox = boxName;
     cases[index].status = "تم توزيعها";
@@ -199,42 +155,23 @@ function moveToBox(boxName) {
     localStorage.setItem("labxNewCases", JSON.stringify(cases));
 
     alert("✔ تم توزيع الحالة إلى: " + boxName);
-    selectedCase = null;
     showReadyCases();
-    countBoxes();
+    selectedCase = null;
 }
 
-function countBoxes() {
-    const dist = cases.filter(c => c.status === "تم توزيعها");
 
-    const counters = {
-        "RDC1 - BOX 1": "c_rdc1_1",
-        "RDC1 - BOX 2": "c_rdc1_2",
-        "RDC1 - BOX 3": "c_rdc1_3",
-        "RDC1 - BOX 4": "c_rdc1_4",
-
-        "RDC2 - BOX 1": "c_rdc2_1",
-        "RDC2 - BOX 2": "c_rdc2_2",
-        "RDC2 - BOX 3": "c_rdc2_3",
-
-        "المؤقت": "c_temp",
-        "المتحرك": "c_move",
-        "PFM": "c_pfm",
-        "CAD/CAM": "c_cad"
-    };
-
-    for (const box in counters) {
-        const count = dist.filter(c => c.assignedBox === box).length;
-        document.getElementById(counters[box]).innerText = `(${count})`;
-    }
-}
-
+// ------------------------------------------------------------
+// عرض QR
+// ------------------------------------------------------------
 function viewQR(fileNumber) {
     window.location.href = `case-details.html?file=${fileNumber}`;
 }
 
+
+// تشغيل الصفحة
 showReadyCases();
-countBoxes();
+createDynamicBoxes();
+
 </script>
 
 </body>
