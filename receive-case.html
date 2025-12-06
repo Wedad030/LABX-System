@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>استلام حالة من العامل - LABX</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="bg">
+  <div class="layout">
+
+    <!-- الهيدر -->
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.jpeg" alt="LABX Dental" class="logo-img" />
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">Receive From Worker</div>
+        </div>
+      </div>
+
+      <div class="top-header-left">
+        <div class="user-info">
+          <span class="hello">مرحبًا،</span>
+          <span id="userName" class="user-name">user</span>
+        </div>
+        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
+      </div>
+    </header>
+
+    <main class="main-card fade-in">
+      <p class="role-badge" id="roleLabel"></p>
+
+      <h2 style="margin-bottom: 12px;">استلام حالة من العامل الفني</h2>
+
+      <form id="receiveForm" class="tiles-grid" style="margin-top: 10px;">
+
+        <div class="tile">
+          <label>رقم الملف</label>
+          <input type="text" id="fileNumber" placeholder="مثال: 11000012345" required />
+        </div>
+
+        <div class="tile">
+          <label>اختر المصدر (من؟)</label>
+          <select id="workerSource" required>
+            <option value="">اختر العامل</option>
+            <option value="RDC1 - شهاب">RDC1 - شهاب</option>
+            <option value="RDC2 - أمين">RDC2 - أمين</option>
+          </select>
+        </div>
+
+        <div class="tile">
+          <label>زر تأكيد الاستلام</label>
+          <button type="button" id="confirmBtn" class="btn-logout" style="background:#0f766e;">
+            تأكيد الاستلام
+          </button>
+        </div>
+
+        <div class="tile">
+          <label>ملاحظات الاستلام (اختياري)</label>
+          <textarea id="notes" rows="3" style="width:100%;border-radius:12px;border:1px solid #e2e8f0;padding:8px;"></textarea>
+        </div>
+
+        <div style="grid-column:1/-1;display:flex;gap:10px;margin-top:10px;">
+          <a href="index.html" class="btn-logout" style="background:#16a34a;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
+            رجوع للواجهة الرئيسية
+          </a>
+        </div>
+
+      </form>
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById("confirmBtn").addEventListener("click", () => {
+      const fileNumber = document.getElementById("fileNumber").value.trim();
+      const workerSource = document.getElementById("workerSource").value.trim();
+      const notes = document.getElementById("notes").value.trim();
+
+      if (!fileNumber || !workerSource) {
+        alert("⚠️ الرجاء تعبئة جميع الحقول المطلوبة");
+        return;
+      }
+
+      const receivedCase = {
+        id: Date.now(),
+        fileNumber,
+        workerSource,
+        notes,
+        receivedAt: new Date().toISOString(),
+      };
+
+      const stored = JSON.parse(localStorage.getItem("labxReceivedFromWorkers") || "[]");
+      stored.push(receivedCase);
+      localStorage.setItem("labxReceivedFromWorkers", JSON.stringify(stored));
+
+      alert("✅ تم تسجيل استلام الحالة من العامل بنجاح");
+    });
+  </script>
+
+</body>
+</html>
