@@ -1,104 +1,106 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>استلام حالة من العامل - LABX</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>تفاصيل الحالة - LABX</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .details-box {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+      margin-top: 20px;
+      line-height: 2;
+    }
+
+    .qr-img {
+      width: 140px;
+      margin: 15px auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #0f766e;
+    }
+  </style>
 </head>
 
 <body class="bg">
+
   <div class="layout">
 
     <!-- الهيدر -->
     <header class="top-header">
       <div class="top-header-right">
-        <img src="logo.jpeg" alt="LABX Dental" class="logo-img" />
+        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
         <div class="brand-text">
           <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">Receive From Worker</div>
+          <div class="brand-sub">Case Details</div>
         </div>
       </div>
 
       <div class="top-header-left">
-        <div class="user-info">
-          <span class="hello">مرحبًا،</span>
-          <span id="userName" class="user-name">user</span>
-        </div>
-        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
+        <button onclick="window.location.href='index.html'" class="btn-logout" style="background:#0f766e;">
+          رجوع للواجهة
+        </button>
       </div>
     </header>
 
+    <!-- الصفحة -->
     <main class="main-card fade-in">
-      <p class="role-badge" id="roleLabel"></p>
 
-      <h2 style="margin-bottom: 12px;">استلام حالة من العامل الفني</h2>
+      <h2 style="text-align:center;">تفاصيل الحالة</h2>
 
-      <form id="receiveForm" class="tiles-grid" style="margin-top: 10px;">
+      <div id="caseDetails" class="details-box">
+        تحميل البيانات...
+      </div>
 
-        <div class="tile">
-          <label>رقم الملف</label>
-          <input type="text" id="fileNumber" placeholder="مثال: 11000012345" required />
-        </div>
-
-        <div class="tile">
-          <label>اختر المصدر (من؟)</label>
-          <select id="workerSource" required>
-            <option value="">اختر العامل</option>
-            <option value="RDC1 - شهاب">RDC1 - شهاب</option>
-            <option value="RDC2 - أمين">RDC2 - أمين</option>
-          </select>
-        </div>
-
-        <div class="tile">
-          <label>زر تأكيد الاستلام</label>
-          <button type="button" id="confirmBtn" class="btn-logout" style="background:#0f766e;">
-            تأكيد الاستلام
-          </button>
-        </div>
-
-        <div class="tile">
-          <label>ملاحظات الاستلام (اختياري)</label>
-          <textarea id="notes" rows="3" style="width:100%;border-radius:12px;border:1px solid #e2e8f0;padding:8px;"></textarea>
-        </div>
-
-        <div style="grid-column:1/-1;display:flex;gap:10px;margin-top:10px;">
-          <a href="index.html" class="btn-logout" style="background:#16a34a;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
-            رجوع للواجهة الرئيسية
-          </a>
-        </div>
-
-      </form>
     </main>
-
   </div>
 
-  <script src="app.js"></script>
-  <script>
-    document.getElementById("confirmBtn").addEventListener("click", () => {
-      const fileNumber = document.getElementById("fileNumber").value.trim();
-      const workerSource = document.getElementById("workerSource").value.trim();
-      const notes = document.getElementById("notes").value.trim();
+<script>
+  // جلب ID الحالة الذي تم حفظه عند مسح QR
+  const selectedCaseId = localStorage.getItem("selectedCaseId");
 
-      if (!fileNumber || !workerSource) {
-        alert("⚠️ الرجاء تعبئة جميع الحقول المطلوبة");
-        return;
-      }
+  const cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+  const caseData = cases.find(c => c.id == selectedCaseId);
 
-      const receivedCase = {
-        id: Date.now(),
-        fileNumber,
-        workerSource,
-        notes,
-        receivedAt: new Date().toISOString(),
-      };
+  const box = document.getElementById("caseDetails");
 
-      const stored = JSON.parse(localStorage.getItem("labxReceivedFromWorkers") || "[]");
-      stored.push(receivedCase);
-      localStorage.setItem("labxReceivedFromWorkers", JSON.stringify(stored));
+  if (!caseData) {
+    box.innerHTML = "<p style='color:#b91c1c;font-weight:bold;'>❌ لم يتم العثور على بيانات الحالة</p>";
+  } else {
+    box.innerHTML = `
+      <h3>${caseData.patientName}</h3>
+      <p><strong>رقم الملف:</strong> ${caseData.fileNumber}</p>
+      <p><strong>اسم الطبيب:</strong> ${caseData.doctorName}</p>
+      <p><strong>اسم المساعدة:</strong> ${caseData.assistantName}</p>
+      <p><strong>رقم العيادة:</strong> ${caseData.clinicNumber}</p>
+      <p><strong>نوع الحالة:</strong> ${caseData.caseType}</p>
+      <p><strong>الفني المنفذ:</strong> ${caseData.technicianName}</p>
+      <p><strong>ملاحظات:</strong> ${caseData.notes || "لا يوجد"}</p>
 
-      alert("✅ تم تسجيل استلام الحالة من العامل بنجاح");
-    });
-  </script>
+      <div class="section-title">رمز الـ QR</div>
+      <img class="qr-img" src="${caseData.qrImage}" alt="QR">
+
+      <p><strong>رقم الـ QR:</strong> ${caseData.qrValue}</p>
+
+      <div class="section-title">تاريخ إنشاء الطلب</div>
+      <p>${new Date(caseData.createdAt).toLocaleString()}</p>
+
+      <br>
+      <button onclick="window.print()" class="btn-logout" style="background:#0f766e;width:100%;">
+        طباعة الحالة
+      </button>
+    `;
+  }
+</script>
 
 </body>
 </html>
