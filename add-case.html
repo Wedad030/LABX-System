@@ -1,154 +1,156 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>إضافة حالة - LABX</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <title>إضافة حالة - LABX</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="bg">
-  <div class="layout">
 
-    <!-- الهيدر نفسه -->
+<div class="layout">
+
+    <!-- الهيدر -->
     <header class="top-header">
-      <div class="top-header-right">
-        <img src="logo.png" alt="LABX Dental" class="logo-img" />
-        <div class="brand-text">
-          <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">Add New Case</div>
+        <div class="top-header-right">
+            <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
+            <div class="brand-text">
+                <div class="brand-title">LABX DENTAL</div>
+                <div class="brand-sub">Add Case</div>
+            </div>
         </div>
-      </div>
 
-      <div class="top-header-left">
-        <div class="user-info">
-          <span class="hello">مرحبًا،</span>
-          <span id="userName" class="user-name">user</span>
+        <div class="top-header-left">
+            <button onclick="window.location.href='index.html'" 
+                    class="btn-logout" style="background:#0f766e;">
+                رجوع
+            </button>
         </div>
-        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
-      </div>
     </header>
 
+
+    <!-- الصفحة -->
     <main class="main-card fade-in">
-      <p class="role-badge" id="roleLabel"></p>
 
-      <h2 style="margin-bottom: 10px; font-size: 18px;">إضافة حالة جديدة</h2>
+        <h2 style="text-align:center;margin-bottom:20px;">إضافة حالة جديدة</h2>
 
-      <form id="addCaseForm" class="tiles-grid" style="margin-top: 10px;">
-        <div class="tile">
-          <label>اسم المريض</label>
-          <input type="text" id="patientName" required />
-        </div>
+        <label>اسم المريض:</label>
+        <input id="patientName" class="input" placeholder="اسم المريض">
 
-        <div class="tile">
-          <label>رقم الملف</label>
-          <input type="text" id="fileNumber" required />
-        </div>
+        <label>رقم الملف:</label>
+        <input id="fileNumber" class="input" placeholder="رقم الملف">
 
-        <div class="tile">
-          <label>اسم الطبيب</label>
-          <input type="text" id="doctorName" />
-        </div>
+        <label>اسم الطبيب:</label>
+        <input id="doctorName" class="input" placeholder="اسم الطبيب">
 
-        <div class="tile">
-          <label>اسم المساعدة</label>
-          <input type="text" id="assistantName" />
-        </div>
+        <label>اسم المساعدة:</label>
+        <input id="assistantName" class="input" placeholder="اسم المساعدة">
 
-        <div class="tile">
-          <label>رقم العيادة</label>
-          <input type="text" id="clinicNumber" />
-        </div>
+        <label>رقم العيادة:</label>
+        <input id="clinicNumber" class="input" placeholder="رقم العيادة">
 
-        <div class="tile">
-          <label>نوع الحالة</label>
-          <select id="caseType">
-            <option value="RPD">RPD</option>
-            <option value="Temp Crown">Temp Crown</option>
-            <option value="Denture">Denture</option>
-            <option value="Other">Other</option>
-          </select>
-          <small style="font-size:11px;color:#64748b;">
-            سيتم تحديد الفني تلقائيًا بناءً على نوع الحالة (مبدئيًا في الواجهة فقط).
-          </small>
-        </div>
+        <label>نوع الحالة:</label>
+        <select id="caseType" class="input"></select>
 
-        <div class="tile">
-          <label>الحالة مرفوضة؟</label>
-          <select id="isRejected">
-            <option value="no">لا</option>
-            <option value="yes">نعم</option>
-          </select>
-        </div>
+        <label>الفني المسؤول:</label>
+        <select id="technician" class="input"></select>
 
-        <div class="tile">
-          <label>الفني (يُحدد تلقائيًا)</label>
-          <input type="text" id="technicianName" readonly />
-        </div>
+        <label>ملاحظات:</label>
+        <textarea id="notes" class="input" rows="3"></textarea>
 
-        <div class="tile">
-          <label>رفع صورة / R4</label>
-          <input type="file" id="scanFile" />
-        </div>
-
-        <div class="tile" style="grid-column: 1 / -1;">
-          <label>ملاحظات</label>
-          <textarea id="notes" rows="3" style="width:100%;border-radius:12px;border:1px solid #e2e8f0;padding:8px;"></textarea>
-        </div>
-
-        <div style="grid-column: 1 / -1; display:flex; gap:10px; margin-top:8px;">
-          <button type="submit" class="btn-logout" style="background:#16a34a;box-shadow:none;">
+        <button onclick="saveCase()" class="btn-logout" 
+                style="background:#0f766e;margin-top:15px;width:100%;">
             حفظ الحالة
-          </button>
-          <a href="index.html" class="btn-logout" style="background:#0f766e; text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
-            رجوع للواجهة الرئيسية
-          </a>
-        </div>
-      </form>
+        </button>
+
     </main>
-  </div>
 
-  <script src="app.js"></script>
-  <script>
-    // منطق بسيط لتحديد الفني حسب نوع الحالة (واجهة فقط)
+</div>
+
+
+<!-- سكربت الصفحة -->
+<script>
+
+// ---------------------------------------------------------
+// تحميل الفنيين + الأقسام من إعدادات settings.html
+// ---------------------------------------------------------
+let techList = JSON.parse(localStorage.getItem("techList") || "[]");
+let deptList = JSON.parse(localStorage.getItem("deptList") || "[]");
+
+function loadDynamicLists() {
+    const techSelect = document.getElementById("technician");
     const caseTypeSelect = document.getElementById("caseType");
-    const techInput = document.getElementById("technicianName");
 
-    const techByCase = {
-      "RPD": "قاسم",
-      "Temp Crown": "أحمد",
-      "Denture": "سعيد",
-      "Other": "فني آخر"
+    techSelect.innerHTML = "";
+    caseTypeSelect.innerHTML = "";
+
+    // الأقسام
+    deptList.forEach(d => {
+        let opt = document.createElement("option");
+        opt.value = d;
+        opt.innerText = d;
+        caseTypeSelect.appendChild(opt);
+    });
+
+    // الفنيين
+    techList.forEach(t => {
+        let opt = document.createElement("option");
+        opt.value = t.name;
+        opt.innerText = t.name;
+        techSelect.appendChild(opt);
+    });
+}
+
+window.onload = loadDynamicLists;
+
+
+// ---------------------------------------------------------
+// حفظ الحالة + ربطها بصفحة الفني + QR Code
+// ---------------------------------------------------------
+function saveCase() {
+    let patientName = document.getElementById("patientName").value.trim();
+    let fileNumber = document.getElementById("fileNumber").value.trim();
+    let doctorName = document.getElementById("doctorName").value.trim();
+    let assistantName = document.getElementById("assistantName").value.trim();
+    let clinicNumber = document.getElementById("clinicNumber").value.trim();
+    let caseType = document.getElementById("caseType").value.trim();
+    let technician = document.getElementById("technician").value.trim();
+    let notes = document.getElementById("notes").value.trim();
+
+    if (!patientName || !fileNumber || !doctorName || !assistantName || !caseType || !technician) {
+        alert("⚠️ يرجى تعبئة جميع البيانات الأساسية.");
+        return;
+    }
+
+    let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+
+    // إنشاء QR خاص بالحالة
+    let qrValue = `LABX-${fileNumber}-${Date.now()}`;
+
+    let newCase = {
+        id: Date.now(),
+        patientName,
+        fileNumber,
+        doctorName,
+        assistantName,
+        clinicNumber,
+        caseType,
+        technicianName: technician,
+        notes,
+        createdAt: new Date().toLocaleString(),
+        status: "تحت الإجراء",
+        qrValue
     };
 
-    caseTypeSelect.addEventListener("change", () => {
-      const v = caseTypeSelect.value;
-      techInput.value = techByCase[v] || "";
-    });
+    cases.push(newCase);
+    localStorage.setItem("labxNewCases", JSON.stringify(cases));
 
-    // لو حابة نخزن مبدئيًا في localStorage كقائمة "الحالات الجديدة"
-    document.getElementById("addCaseForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const newCase = {
-        id: Date.now(),
-        patientName: patientName.value,
-        fileNumber: fileNumber.value,
-        doctorName: doctorName.value,
-        assistantName: assistantName.value,
-        clinicNumber: clinicNumber.value,
-        caseType: caseType.value,
-        isRejected: isRejected.value === "yes",
-        technicianName: technicianName.value,
-        notes: notes.value,
-        createdAt: new Date().toISOString()
-      };
+    alert("✔️ تم حفظ الحالة بنجاح!");
+    window.location.href = "index.html";
+}
 
-      const stored = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
-      stored.push(newCase);
-      localStorage.setItem("labxNewCases", JSON.stringify(stored));
+</script>
 
-      alert("تم حفظ الحالة في قائمة الحالات الجديدة (محليًا).");
-      (e.target).reset();
-      techInput.value = "";
-    });
-  </script>
+
 </body>
 </html>
