@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>إضافة حالة - LABX</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg">
+  <div class="layout">
+
+    <!-- الهيدر نفسه -->
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.png" alt="LABX Dental" class="logo-img" />
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">Add New Case</div>
+        </div>
+      </div>
+
+      <div class="top-header-left">
+        <div class="user-info">
+          <span class="hello">مرحبًا،</span>
+          <span id="userName" class="user-name">user</span>
+        </div>
+        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
+      </div>
+    </header>
+
+    <main class="main-card fade-in">
+      <p class="role-badge" id="roleLabel"></p>
+
+      <h2 style="margin-bottom: 10px; font-size: 18px;">إضافة حالة جديدة</h2>
+
+      <form id="addCaseForm" class="tiles-grid" style="margin-top: 10px;">
+        <div class="tile">
+          <label>اسم المريض</label>
+          <input type="text" id="patientName" required />
+        </div>
+
+        <div class="tile">
+          <label>رقم الملف</label>
+          <input type="text" id="fileNumber" required />
+        </div>
+
+        <div class="tile">
+          <label>اسم الطبيب</label>
+          <input type="text" id="doctorName" />
+        </div>
+
+        <div class="tile">
+          <label>اسم المساعدة</label>
+          <input type="text" id="assistantName" />
+        </div>
+
+        <div class="tile">
+          <label>رقم العيادة</label>
+          <input type="text" id="clinicNumber" />
+        </div>
+
+        <div class="tile">
+          <label>نوع الحالة</label>
+          <select id="caseType">
+            <option value="RPD">RPD</option>
+            <option value="Temp Crown">Temp Crown</option>
+            <option value="Denture">Denture</option>
+            <option value="Other">Other</option>
+          </select>
+          <small style="font-size:11px;color:#64748b;">
+            سيتم تحديد الفني تلقائيًا بناءً على نوع الحالة (مبدئيًا في الواجهة فقط).
+          </small>
+        </div>
+
+        <div class="tile">
+          <label>الحالة مرفوضة؟</label>
+          <select id="isRejected">
+            <option value="no">لا</option>
+            <option value="yes">نعم</option>
+          </select>
+        </div>
+
+        <div class="tile">
+          <label>الفني (يُحدد تلقائيًا)</label>
+          <input type="text" id="technicianName" readonly />
+        </div>
+
+        <div class="tile">
+          <label>رفع صورة / R4</label>
+          <input type="file" id="scanFile" />
+        </div>
+
+        <div class="tile" style="grid-column: 1 / -1;">
+          <label>ملاحظات</label>
+          <textarea id="notes" rows="3" style="width:100%;border-radius:12px;border:1px solid #e2e8f0;padding:8px;"></textarea>
+        </div>
+
+        <div style="grid-column: 1 / -1; display:flex; gap:10px; margin-top:8px;">
+          <button type="submit" class="btn-logout" style="background:#16a34a;box-shadow:none;">
+            حفظ الحالة
+          </button>
+          <a href="index.html" class="btn-logout" style="background:#0f766e; text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
+            رجوع للواجهة الرئيسية
+          </a>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // منطق بسيط لتحديد الفني حسب نوع الحالة (واجهة فقط)
+    const caseTypeSelect = document.getElementById("caseType");
+    const techInput = document.getElementById("technicianName");
+
+    const techByCase = {
+      "RPD": "قاسم",
+      "Temp Crown": "أحمد",
+      "Denture": "سعيد",
+      "Other": "فني آخر"
+    };
+
+    caseTypeSelect.addEventListener("change", () => {
+      const v = caseTypeSelect.value;
+      techInput.value = techByCase[v] || "";
+    });
+
+    // لو حابة نخزن مبدئيًا في localStorage كقائمة "الحالات الجديدة"
+    document.getElementById("addCaseForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const newCase = {
+        id: Date.now(),
+        patientName: patientName.value,
+        fileNumber: fileNumber.value,
+        doctorName: doctorName.value,
+        assistantName: assistantName.value,
+        clinicNumber: clinicNumber.value,
+        caseType: caseType.value,
+        isRejected: isRejected.value === "yes",
+        technicianName: technicianName.value,
+        notes: notes.value,
+        createdAt: new Date().toISOString()
+      };
+
+      const stored = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+      stored.push(newCase);
+      localStorage.setItem("labxNewCases", JSON.stringify(stored));
+
+      alert("تم حفظ الحالة في قائمة الحالات الجديدة (محليًا).");
+      (e.target).reset();
+      techInput.value = "";
+    });
+  </script>
+</body>
+</html>
