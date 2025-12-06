@@ -162,6 +162,105 @@ checkVacation();
 <!-- ... باقي الصفحة ... -->
 
 <script type="module" src="firebase.js"></script>
+<script type="module">
+import { getCasesFromCloud, markCaseAsEdited } from "./firebase.js";
+
+const container = document.getElementById("casesContainer");
+const vacationAlert = document.getElementById("vacationAlert");
+
+// ألوان الفنيين بعد ربط Firebase
+const techColors = {
+  "قاسم عسيري": { main: "#3bb2f6", edited: "#22c55e" },
+  "أحمد كوشان": { main: "#3bb2f6", edited: "#22c55e" },
+  "عبدالله الرشيد": { main: "#3bb2f6", edited: "#22c55e" },
+  "عبدالله الشهراني": { main: "#3bb2f6", edited: "#22c55e" },
+  "أحمد القحطاني": { main: "#3bb2f6", edited: "#22c55e" },
+  "يحيى عسيري": { main: "#3bb2f6", edited: "#22c55e" },
+
+  // PFM
+  "سلطان الاحمري": { main: "#8b5cf6", edited: "#22c55e" },
+  "أيمن الشهري": { main: "#8b5cf6", edited: "#22c55e" },
+  "فيصل الوادعي": { main: "#8b5cf6", edited: "#22c55e" },
+
+  // Ortho
+  "تركي الشهري": { main: "#14b8a6", edited: "#22c55e" },
+  "وليد الشهري": { main: "#14b8a6", edited: "#22c55e" },
+  "أسامة عسيري": { main: "#14b8a6", edited: "#22c55e" },
+
+  // متحرك
+  "رشيد الكثيري": { main: "#22c55e", edited: "#84cc16" },
+  "أحمد الصخري": { main: "#22c55e", edited: "#84cc16" },
+  "عبداللطيف عسيري": { main: "#22c55e", edited: "#84cc16" },
+  "محمد الشرفان": { main: "#22c55e", edited: "#84cc16" },
+  "الاء": { main: "#22c55e", edited: "#84cc16" },
+  "هيام": { main: "#22c55e", edited: "#84cc16" },
+  "محمد الغامدي": { main: "#22c55e", edited: "#84cc16" },
+  "منصور العويرضي": { main: "#22c55e", edited: "#84cc16" },
+  "عبدالله الغامدي": { main: "#22c55e", edited: "#84cc16" },
+
+  // مؤقت
+  "احمد الشبل": { main: "#f59e0b", edited: "#22c55e" },
+  "وليد السويري": { main: "#f59e0b", edited: "#22c55e" },
+  "فهد العتيبي": { main: "#f59e0b", edited: "#22c55e" },
+  "عبدالله العود": { main: "#f59e0b", edited: "#22c55e" },
+
+  // الصب
+  "فهد الخميس": { main: "#b67b28", edited: "#22c55e" }
+};
+
+// قائمة الإجازات
+const vacationList = ["تركي الشهري", "سلطان الاحمري", "يحيى عسيري"];
+
+async function loadCases() {
+  const cases = await getCasesFromCloud();
+  renderCases(cases);
+  checkVacation(cases);
+}
+
+function renderCases(cases) {
+  container.innerHTML = "";
+
+  cases.forEach(c => {
+    const isVacation = vacationList.includes(c.technicianName);
+
+    const card = document.createElement("div");
+    card.className = "tile";
+
+    const colors = techColors[c.technicianName] || { main: "#0f766e", edited: "#22c55e" };
+    card.style.borderRight = `8px solid ${colors.main}`;
+
+    if (c.isEdited) {
+      card.style.borderRight = `8px solid ${colors.edited}`;
+    }
+
+    card.innerHTML = `
+      <h3>${c.patientName}</h3>
+      <p>📁 رقم الملف: ${c.fileNumber}</p>
+      <p>👨‍🔧 الفني: ${c.technicianName}</p>
+      <p style="font-size:11px;color:#64748b">${new Date(c.createdAt).toLocaleString()}</p>
+      ${isVacation ? '<p style="color:red;font-weight:bold">⚠ الفني إجازة</p>' : ""}
+      <button onclick="editCase('${c.id}')" class="btn-logout" style="width:100%;margin-top:10px;background:#0f766e">تحديد كـ تعديل</button>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+window.editCase = async function(id) {
+  await markCaseAsEdited(id);
+  alert("تم تحديث الحالة ✔");
+  loadCases();
+};
+
+function checkVacation(cases) {
+  const hasVacationCase = cases.some(c => vacationList.includes(c.technicianName));
+  if (hasVacationCase) {
+    vacationAlert.style.display = "block";
+  }
+}
+
+loadCases();
+</script>    
 <script src="app.js"></script>
 
 </body>
