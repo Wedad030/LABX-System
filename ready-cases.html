@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>الحالات الجاهزة والتوزيع - LABX</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg">
+  <div class="layout">
+
+    <!-- الهيدر -->
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">Ready Cases & Distribution</div>
+        </div>
+      </div>
+
+      <div class="top-header-left">
+        <div class="user-info">
+          <span class="hello">مرحبًا،</span>
+          <span id="userName" class="user-name"></span>
+        </div>
+        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
+      </div>
+    </header>
+
+    <!-- المحتوى -->
+    <main class="main-card fade-in">
+
+      <p class="role-badge" id="roleLabel">الحالات الجاهزة — توزيع العيادات</p>
+
+      <h2 style="margin-bottom:10px;">الحالات الجاهزة للتسليم</h2>
+
+      <div id="readyContainer" class="tiles-grid slide-up"></div>
+
+
+      <h2 style="margin-top:22px;margin-bottom:10px;">مناطق التوزيع</h2>
+
+      <div class="tiles-grid slide-up">
+
+        <div class="tile" onclick="assignArea('RDC1')">
+          <h3>RDC1</h3>
+          <p>منطقة شهاب</p>
+        </div>
+
+        <div class="tile" onclick="assignArea('RDC2')">
+          <h3>RDC2</h3>
+          <p>منطقة أمين</p>
+        </div>
+
+        <div class="tile" onclick="assignArea('Box 1')">
+          <h3>Box 1</h3>
+        </div>
+
+        <div class="tile" onclick="assignArea('Box 2')">
+          <h3>Box 2</h3>
+        </div>
+
+        <div class="tile" onclick="assignArea('Box 3')">
+          <h3>Box 3</h3>
+        </div>
+
+        <div class="tile" onclick="assignArea('Box 4')">
+          <h3>Box 4</h3>
+        </div>
+
+      </div>
+
+      <div style="margin-top:22px;">
+        <a href="index.html" class="btn-logout" style="background:#0f766e;text-decoration:none;">رجوع للواجهة</a>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+
+  <script>
+    const techColors = {
+      "قاسم": "#3b82f6",
+      "أحمد": "#8b5cf6",
+      "سعيد": "#f59e0b",
+      "فني آخر": "#6b7280"
+    };
+
+    const readyCases = JSON.parse(localStorage.getItem("labxReadyCases") || "[]");
+    const newCases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+
+    const readyContainer = document.getElementById("readyContainer");
+
+    function renderReadyCases() {
+      readyContainer.innerHTML = "";
+
+      readyCases.forEach(rc => {
+        const card = document.createElement("div");
+        card.className = "tile";
+        card.style.borderRight = `8px solid ${techColors[rc.technicianName] || "#0f766e"}`;
+
+        card.innerHTML = `
+          <h3>${rc.patientName}</h3>
+          <p>رقم الملف: ${rc.fileNumber}</p>
+          <p>نوع الحالة: ${rc.caseType}</p>
+          <p>الفني: ${rc.technicianName}</p>
+
+          <button onclick="selectCase(${rc.id})" class="btn-logout" style="background:#16a34a;margin-top:10px;width:100%;">
+            اختر للتوزيع
+          </button>
+        `;
+        readyContainer.appendChild(card);
+      });
+    }
+
+    let selectedCase = null;
+
+    function selectCase(id) {
+      selectedCase = id;
+      alert("✔ تم اختيار الحالة — الآن اختر منطقة التوزيع");
+    }
+
+    function assignArea(area) {
+      if (!selectedCase) {
+        alert("⚠️ الرجاء اختيار حالة أولاً");
+        return;
+      }
+
+      const index = readyCases.findIndex(c => c.id === selectedCase);
+      if (index === -1) return;
+
+      readyCases[index].distribution = area;
+      readyCases[index].distributedAt = new Date().toISOString();
+
+      localStorage.setItem("labxReadyCases", JSON.stringify(readyCases));
+
+      alert(`✔ تم توزيع الحالة على: ${area}`);
+
+      selectedCase = null;
+      renderReadyCases();
+    }
+
+    renderReadyCases();
+  </script>
+
+</body>
+</html>
