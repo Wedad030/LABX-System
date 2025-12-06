@@ -1,98 +1,137 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>ماسح QR - LABX</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <title>QR Scanner - LABX</title>
 
-  <!-- مكتبة ماسح QR -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- تصميم سريع للصفحة -->
+    <link rel="stylesheet" href="style.css">
 
-  <style>
-    #reader {
-      width: 320px;
-      margin: auto;
-      margin-top: 20px;
-    }
+    <style>
+        body {
+            text-align: center;
+            padding: 30px;
+        }
 
-    .result-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 20px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-  </style>
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        #preview {
+            width: 90%;
+            max-width: 420px;
+            margin: 20px auto;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        #resultBox {
+            margin-top: 18px;
+            padding: 18px;
+            background: #e7ffe7;
+            border-radius: 12px;
+            display: none;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        #switchBtn {
+            margin-top: 15px;
+            background: var(--green-main);
+            color: white;
+            padding: 12px 22px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: .25s;
+        }
+
+        #switchBtn:hover {
+            transform: scale(1.05);
+            opacity: .9;
+        }
+    </style>
+
+    <!-- مكتبة الهاندسون QR -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 
-<body class="bg">
+<body class="bg fade-in">
 
-  <div class="layout">
+    <h2>📷 امسح الكود الخاص بالحالة</h2>
 
-    <header class="top-header">
-      <div class="top-header-right">
-        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
-        <div class="brand-text">
-          <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">QR Scanner</div>
-        </div>
-      </div>
+    <!-- الكاميرا -->
+    <div id="preview"></div>
 
-      <div class="top-header-left">
-        <button onclick="window.location.href='index.html'" class="btn-logout" style="background:#0f766e;">
-          رجوع
-        </button>
-      </div>
-    </header>
-
-    <main class="main-card fade-in">
-      <h2 style="text-align:center;margin-bottom:15px;">ماسح QR - الكاميرا</h2>
-
-      <div id="reader"></div>
-
-      <div id="resultBox" class="result-box" style="display:none;">
-        <h3>نتيجة المسح</h3>
+    <!-- عرض نتيجة المسح -->
+    <div id="resultBox">
+        <h3>✔ تم قراءة الكود بنجاح</h3>
         <p id="qrResult"></p>
 
-        <button id="openCaseBtn" class="btn-logout" style="background:#0f766e;margin-top:10px;">
-          فتح الحالة
+        <button onclick="goToCase()" 
+                style="margin-top:15px;background:#0f766e;color:#fff;padding:12px 25px;border-radius:10px;border:none;cursor:pointer;">
+            عرض تفاصيل الحالة
         </button>
-      </div>
-    </main>
+    </div>
 
-  </div>
+    <!-- تبديل الكاميرا -->
+    <button id="switchBtn">🔄 تبديل الكاميرا</button>
 
-<script>
-  // تشغيل الماسح
-  function onScanSuccess(decodedText) {
-    document.getElementById("resultBox").style.display = "block";
-    document.getElementById("qrResult").textContent = decodedText;
+    <script>
+        let lastQR = "";
+        let currentCamera = "environment"; // يبدأ بالكاميرا الخلفية
 
-    // البحث عن الحالة في النظام
-    const cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
-    const foundCase = cases.find(c => c.qrValue === decodedText);
+        function startScanner() {
+            const html5QrCode = new Html5Qrcode("preview");
 
-    // إذا وجدنا الحالة
-    document.getElementById("openCaseBtn").onclick = () => {
-      if (foundCase) {
-        // نحفظ ID الحالة ونرسل المستخدم للصفحة
-        localStorage.setItem("selectedCaseId", foundCase.id);
-        window.location.href = "case-details.html";
-      } else {
-        alert("❌ لا توجد حالة بهذا QR");
-      }
-    };
-  }
+            Html5Qrcode.getCameras().then((devices) => {
+                const cameraId = devices.find(d => d.label.includes("back"))?.id || devices[0].id;
 
-  // إعداد الكاميرا
-  let html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: 250 },
-    false
-  );
-  html5QrcodeScanner.render(onScanSuccess);
-</script>
+                html5QrCode.start(
+                    cameraId,
+                    { fps: 10, qrbox: 250 },
+                    qrCodeMessage => {
+                        lastQR = qrCodeMessage;
+                        document.getElementById("qrResult").innerText = lastQR;
+                        document.getElementById("resultBox").style.display = "block";
+                    },
+                    errorMessage => {}
+                );
+
+                // عند الضغط على زر التبديل
+                document.getElementById("switchBtn").onclick = async () => {
+                    html5QrCode.stop();
+                    currentCamera = currentCamera === "environment" ? "user" : "environment";
+                    document.getElementById("resultBox").style.display = "none";
+
+                    const camId = devices.find(d =>
+                        currentCamera === "environment"
+                            ? d.label.toLowerCase().includes("back")
+                            : d.label.toLowerCase().includes("front")
+                    )?.id || devices[0].id;
+
+                    html5QrCode.start(
+                        camId,
+                        { fps: 10, qrbox: 250 },
+                        qrCodeMessage => {
+                            lastQR = qrCodeMessage;
+                            document.getElementById("qrResult").innerText = lastQR;
+                            document.getElementById("resultBox").style.display = "block";
+                        }
+                    );
+                };
+            });
+        }
+
+        startScanner();
+
+        function goToCase() {
+            if (!lastQR) return alert("لا يوجد كود!");
+            window.location.href = `case-details.html?id=${lastQR}`;
+        }
+    </script>
 
 </body>
 </html>
