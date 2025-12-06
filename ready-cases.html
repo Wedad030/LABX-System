@@ -7,18 +7,20 @@
 </head>
 
 <body class="bg">
-    <script>
-// حماية النظام
+
+<script>
+// حماية تسجيل الدخول
 if (localStorage.getItem("labxLogged") !== "true") {
     window.location.href = "login.html";
 }
 </script>
+
 <div class="layout">
 
     <!-- الهيدر -->
     <header class="top-header">
         <div class="top-header-right">
-            <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
+            <img src="labx.jpeg" class="logo-img">
             <div class="brand-text">
                 <div class="brand-title">LABX DENTAL</div>
                 <div class="brand-sub">Ready Cases</div>
@@ -26,9 +28,8 @@ if (localStorage.getItem("labxLogged") !== "true") {
         </div>
 
         <div class="top-header-left">
-            <button onclick="window.location.href='index.html'"
-                    class="btn-logout" style="background:#0f766e;">
-                رجوع
+            <button onclick="window.location.href='index.html'" class="btn-logout">
+                الرئيسية
             </button>
         </div>
     </header>
@@ -36,155 +37,60 @@ if (localStorage.getItem("labxLogged") !== "true") {
 
     <!-- المحتوى -->
     <main class="main-card fade-in">
+        <h2 style="margin-bottom:15px;">📦 الحالات الجاهزة للتسليم</h2>
 
-        <h2 style="text-align:center;">الحالات الجاهزة للتسليم</h2>
-        <p id="readyCount" class="role-badge"></p>
-
-        <div id="readyCasesContainer" class="tiles-grid"></div>
-
-        <hr style="margin:30px 0;opacity:0.2;">
-
-        <h2>توزيع الحالات على العيادات</h2>
-
-        <div id="dynamicBoxes"></div>
-
+        <div id="readyContainer" class="tiles-grid slide-up"></div>
     </main>
+
 </div>
 
 
-<script>
-// ------------------------------------------------------------
-// جلب الإعدادات من صفحة Settings
-// ------------------------------------------------------------
-let techList = JSON.parse(localStorage.getItem("techList") || "[]");
-let deptList = JSON.parse(localStorage.getItem("deptList") || "[]");
-let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
 
-// تحويل قائمة الفنيين إلى خريطة (الفني → اللون)
-let techColors = {};
-techList.forEach(t => {
-    techColors[t.name] = t.color;
-});
+<!-- Firebase -->
+<script type="module">
+import { getReadyCases } from "./firebase.js";
 
+// تحميل الحالات من Firebase
+async function loadReady() {
+    const cases = await getReadyCases();
+    renderReadyCases(cases);
+}
 
-// ------------------------------------------------------------
-// عرض الحالات الجاهزة بصناديق ملونة حسب الفني
-// ------------------------------------------------------------
-function showReadyCases() {
-    const container = document.getElementById("readyCasesContainer");
+// عرض الكروت
+function renderReadyCases(cases) {
+    const container = document.getElementById("readyContainer");
     container.innerHTML = "";
 
-    const ready = cases.filter(c => c.status === "جاهزة");
+    cases.forEach(c => {
+        const card = document.createElement("div");
+        card.className = "tile";
 
-    document.getElementById("readyCount").innerText =
-        `عدد الحالات الجاهزة الآن: ${ready.length}`;
-
-    ready.forEach(c => {
-
-        let color = techColors[c.technicianName] || "#0f766e";
-
-        const div = document.createElement("div");
-        div.className = "tile";
-        div.style.borderRight = `10px solid ${color}`;
-
-        div.innerHTML = `
+        card.innerHTML = `
             <h3>${c.patientName}</h3>
-            <p>رقم الملف: ${c.fileNumber}</p>
-            <p>نوع الحالة: ${c.caseType}</p>
-            <p>الفني: ${c.technicianName}</p>
-            <p style="font-size:12px;color:#64748b;">جاهزة منذ: ${c.readyTime}</p>
+            <p>📁 رقم الملف: ${c.fileNumber}</p>
+            <p>🏥 العيادة: ${c.clinicNumber}</p>
+            <p>👨‍🔧 الفني: ${c.technicianName}</p>
+            <p style="font-size:11px;color:#64748b;">
+                جاهزة منذ: ${new Date(c.readyAt).toLocaleString()}
+            </p>
 
-            <button onclick="selectCase('${c.fileNumber}')"
-                    class="btn-logout" style="background:#0f766e;margin-top:10px;width:100%;">
-                اختيار
-            </button>
-
-            <button onclick="viewQR('${c.fileNumber}')"
-                    class="btn-logout" style="background:#0f172a;margin-top:10px;width:100%;">
-                عرض QR
+            <button onclick="openReceive('${c.id}')" 
+                class="btn-logout" 
+                style="background:#0f766e;margin-top:10px;width:100%;">
+                📲 تسليم للعيادة (QR)
             </button>
         `;
 
-        container.appendChild(div);
+        container.appendChild(card);
     });
 }
 
+window.openReceive = function(id) {
+    window.location.href = `clinic-receive.html?id=${id}`;
+};
 
-// ------------------------------------------------------------
-// اختيار حالة ليتم توزيعها
-// ------------------------------------------------------------
-let selectedCase = null;
-function selectCase(file) {
-    selectedCase = file;
-    alert("✔ تم اختيار الحالة — اختاري الآن البوكس المناسب.");
-}
-
-
-// ------------------------------------------------------------
-// إنشاء صناديق التوزيع ديناميكيًا من الأقسام
-// ------------------------------------------------------------
-function createDynamicBoxes() {
-    const boxContainer = document.getElementById("dynamicBoxes");
-    boxContainer.innerHTML = "";
-
-    deptList.forEach(dept => {
-        let box = document.createElement("div");
-        box.className = "tiles-grid";
-
-        box.innerHTML = `
-            <h3 style="margin-top:20px;">${dept}</h3>
-            <button class="tile" onclick="moveToBox('${dept}')">
-                ${dept}
-            </button>
-        `;
-
-        boxContainer.appendChild(box);
-    });
-}
-
-
-// ------------------------------------------------------------
-// نقل الحالة إلى القسم المختار
-// ------------------------------------------------------------
-function moveToBox(boxName) {
-    if (!selectedCase) {
-        alert("⚠ يرجى اختيار حالة أولاً.");
-        return;
-    }
-
-    let index = cases.findIndex(c => c.fileNumber === selectedCase);
-
-    cases[index].assignedBox = boxName;
-    cases[index].status = "تم توزيعها";
-    cases[index].distributedTime = new Date().toLocaleString();
-
-    localStorage.setItem("labxNewCases", JSON.stringify(cases));
-
-    alert("✔ تم توزيع الحالة إلى: " + boxName);
-    showReadyCases();
-    selectedCase = null;
-}
-
-
-// ------------------------------------------------------------
-// عرض QR
-// ------------------------------------------------------------
-function viewQR(fileNumber) {
-    window.location.href = `case-details.html?file=${fileNumber}`;
-}
-
-
-// تشغيل الصفحة
-showReadyCases();
-createDynamicBoxes();
-
+loadReady();
 </script>
-<!-- ... باقي الصفحة ... -->
 
-<script type="module" src="firebase.js"></script>
-<script src="app.js"></script>
-
-</body>
-</html>
 </body>
 </html>
