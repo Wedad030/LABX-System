@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الأرشيف - LABX</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .archive-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 10px #00000015;
+            margin-bottom: 15px;
+        }
+
+        .archive-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f766e;
+        }
+
+        .archive-btn {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+            border: none;
+            border-radius: 10px;
+            background: #0f766e;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #94a3b8;
+            margin-bottom: 15px;
+        }
+
+        .detail-box {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+
+
+<body class="bg">
+
+<div class="layout">
+
+    <!-- الهيدر -->
+    <header class="top-header">
+        <div class="top-header-right">
+            <img src="labx.jpeg" class="logo-img" alt="LABX">
+            <div class="brand-text">
+                <div class="brand-title">LABX DENTAL</div>
+                <div class="brand-sub">الأرشيف الطبي</div>
+            </div>
+        </div>
+
+        <div class="top-header-left">
+            <button onclick="window.location.href='index.html'" 
+                    class="btn-logout" style="background:#0f766e;">
+                رجوع
+            </button>
+        </div>
+    </header>
+
+
+    <!-- المحتوى -->
+    <main class="main-card fade-in">
+
+        <h2 style="text-align:center;margin-bottom:15px;">أرشيف الحالات</h2>
+
+        <input id="searchBox" class="search-input" placeholder="ابحث باسم المريض أو رقم الملف"
+               onkeyup="renderArchive()">
+
+        <div id="archiveContainer"></div>
+
+    </main>
+</div>
+
+
+
+<script>
+let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+
+// نظهر فقط الحالات المسلمة للعيادة
+function getArchivedCases() {
+    return cases.filter(c => c.status === "تم التسليم للعيادة");
+}
+
+
+// عرض الأرشيف
+function renderArchive() {
+    const container = document.getElementById("archiveContainer");
+    const search = document.getElementById("searchBox").value.trim().toLowerCase();
+
+    const archiveList = getArchivedCases().filter(c =>
+        c.patientName.toLowerCase().includes(search) ||
+        c.fileNumber.toLowerCase().includes(search)
+    );
+
+    container.innerHTML = "";
+
+    archiveList.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "archive-card";
+
+        div.innerHTML = `
+            <div class="archive-title">${c.patientName}</div>
+            <p>رقم الملف: ${c.fileNumber}</p>
+            <p>نوع الحالة: ${c.caseType}</p>
+            <p>الفني المسؤول: ${c.technicianName}</p>
+            <button class="archive-btn" onclick="openDetails(${c.id})">عرض التفاصيل</button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+
+// صفحة التفاصيل
+function openDetails(id) {
+    const c = cases.find(x => x.id === id);
+    if (!c) return;
+
+    const win = window.open("", "_blank");
+
+    win.document.write(`
+        <html lang="ar" dir="rtl">
+        <head>
+            <title>تفاصيل الحالة</title>
+            <style>
+                body { font-family: sans-serif; padding: 20px; }
+                .box { margin-bottom: 10px; padding: 10px; background:#f1f5f9; border-radius:10px; }
+                .title { font-size: 22px; color:#0f766e; font-weight:bold; margin-bottom:10px; }
+                img { max-width: 260px; margin-top: 10px; border-radius: 8px; border:1px solid #ccc; }
+                button { padding:10px 20px; border:none; border-radius:8px;
+                         background:#0f766e;color:white;margin-top:20px;cursor:pointer; }
+            </style>
+        </head>
+
+        <body>
+            <div class="title">بيانات الحالة</div>
+
+            <div class="box">اسم المريض: ${c.patientName}</div>
+            <div class="box">رقم الملف: ${c.fileNumber}</div>
+            <div class="box">نوع الحالة: ${c.caseType}</div>
+            <div class="box">الفني: ${c.technicianName}</div>
+
+            <div class="title">تسليم العيادة</div>
+            <div class="box">اسم المساعدة: ${c.clinicReceive?.assistant || "-"}</div>
+            <div class="box">رقم العيادة: ${c.clinicReceive?.clinic || "-"}</div>
+            <div class="box">وقت الاستلام: ${c.clinicReceive?.time || "-"}</div>
+
+            <div class="title">التوقيع الإلكتروني</div>
+            <img src="${c.clinicReceive?.signature}" alt="Signature" />
+
+            <div class="title">QR الخاص بالحالة</div>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${c.qrValue}">
+
+            <button onclick="window.print()">طباعة</button>
+        </body>
+        </html>
+    `);
+
+    win.document.close();
+}
+
+
+// أول تحميل
+renderArchive();
+</script>
+
+</body>
+</html>
