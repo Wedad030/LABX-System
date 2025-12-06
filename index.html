@@ -7,6 +7,12 @@
 </head>
 
 <body class="bg">
+  <script>
+// حماية النظام
+if (localStorage.getItem("labxLogged") !== "true") {
+    window.location.href = "login.html";
+}
+</script>
   <div class="layout">
 
     <!-- رأس الصفحة -->
@@ -70,3 +76,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
