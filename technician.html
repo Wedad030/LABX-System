@@ -137,7 +137,16 @@ function markAsReady(id) {
         cases[index].status = "جاهزة";
         cases[index].readyTime = new Date().toLocaleString();
 
-        localStorage.setItem("labxNewCases", JSON.stringify(cases));
+       function markAsReady(id) {
+    let index = cases.findIndex(c => c.id === id);
+    if (index > -1) {
+        cases[index].status = "جاهزة";
+        cases[index].readyTime = new Date().toLocaleString();
+
+        alert("✓ الحالة أصبحت جاهزة للتسليم");
+        renderCases(cases);
+    }
+}
         alert("✔ الحالة أصبحت جاهزة للتسليم");
         renderCases();
     }
@@ -161,7 +170,7 @@ checkVacation();
 </script>
 <!-- ... باقي الصفحة ... -->
 
-<script type="module" src="firebase.js"></script>
+
 <script type="module">
 import { getCasesFromCloud, markCaseAsEdited } from "./firebase.js";
 
@@ -262,7 +271,19 @@ function checkVacation(cases) {
 loadCases();
 </script>    
 <script src="app.js"></script>
+<script type="module" src="firebase.js"></script>
+    <script type="module">
+import { getAllCases } from "./firebase.js";
 
+async function loadCases() {
+    const cases = await getAllCases();
+
+    // نفس الكود اللي عندك أصلاً لتوزيع الألوان والكارودز
+    renderCases(cases);
+}
+
+loadCases();
+</script>
 </body>
 </html>
 
