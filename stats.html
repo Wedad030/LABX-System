@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة الإحصائيات - LABX</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- مكتبة charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      border: 1px solid #e2e8f0;
+      transition: 0.25s;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 35px rgba(0,0,0,0.15);
+    }
+    .stat-number {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f766e;
+      margin-top: 6px;
+    }
+    canvas {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body class="bg">
+
+  <div class="layout">
+
+    <!-- الهيدر -->
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">Statistics Panel</div>
+        </div>
+      </div>
+
+      <div class="top-header-left">
+        <div class="user-info">
+          <span class="hello">مرحبًا،</span>
+          <span id="userName" class="user-name"></span>
+        </div>
+        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
+      </div>
+    </header>
+
+    <!-- المحتوى -->
+    <main class="main-card fade-in">
+
+      <p class="role-badge">الإحصائيات والتحليلات</p>
+
+      <!-- ===== البطاقات الأساسية ===== -->
+      <div class="stats-grid slide-up">
+
+        <div class="stat-card">
+          <h3>الحالات الجديدة اليوم</h3>
+          <div id="dailyCases" class="stat-number">0</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>الحالات هذا الأسبوع</h3>
+          <div id="weeklyCases" class="stat-number">0</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>الحالات هذا الشهر</h3>
+          <div id="monthlyCases" class="stat-number">0</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>الحالات الجاهزة</h3>
+          <div id="readyCount" class="stat-number">0</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>المستلمة في العيادة</h3>
+          <div id="clinicReceivedCount" class="stat-number">0</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>الحالات المرفوضة</h3>
+          <div id="rejectedCount" class="stat-number">0</div>
+        </div>
+
+      </div>
+
+      <!-- ===== مخطط توزيع الفنيين ===== -->
+      <h2 style="margin-top:22px;">توزيع الحالات حسب الفني</h2>
+      <canvas id="techChart" height="120"></canvas>
+
+      <!-- ===== مخطط الحالات اليومية ===== -->
+      <h2 style="margin-top:22px;">عدد الحالات اليومية</h2>
+      <canvas id="dailyChart" height="120"></canvas>
+
+
+      <div style="margin-top:22px;">
+        <a href="index.html" class="btn-logout" style="background:#0f766e;text-decoration:none;">
+          رجوع للواجهة
+        </a>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+
+  <script>
+
+    // جلب البيانات من النظام
+    const newCases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+    const readyCases = JSON.parse(localStorage.getItem("labxReadyCases") || "[]");
+    const clinicReceived = JSON.parse(localStorage.getItem("labxClinicReceive") || "[]");
+
+    // حسابات التواريخ
+    const today = new Date().toDateString();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    const now = new Date();
+
+    let daily = 0, weekly = 0, monthly = 0, rejected = 0;
+
+    newCases.forEach(c => {
+      const date = new Date(c.createdAt);
+
+      if (date.toDateString() === today) daily++;
+
+      if (now - date <= oneWeek) weekly++;
+
+      if (date.getMonth() === now.getMonth()) monthly++;
+
+      if (c.isRejected) rejected++;
+    });
+
+    // عرض القيم في الصفحة
+    document.getElementById("dailyCases").textContent = daily;
+    document.getElementById("weeklyCases").textContent = weekly;
+    document.getElementById("monthlyCases").textContent = monthly;
+    document.getElementById("readyCount").textContent = readyCases.length;
+    document.getElementById("clinicReceivedCount").textContent = clinicReceived.length;
+    document.getElementById("rejectedCount").textContent = rejected;
+
+    // ===== مخطط توزيع الفني =====
+    const techCountMap = {};
+
+    newCases.forEach(c => {
+      const tech = c.technicianName || "غير محدد";
+      techCountMap[tech] = (techCountMap[tech] || 0) + 1;
+    });
+
+    new Chart(document.getElementById("techChart"), {
+      type: "bar",
+      data: {
+        labels: Object.keys(techCountMap),
+        datasets: [{
+          label: "عدد الحالات",
+          data: Object.values(techCountMap),
+          backgroundColor: ["#3b82f6", "#8b5cf6", "#f59e0b", "#22c55e", "#6b7280"]
+        }]
+      }
+    });
+
+    // ===== مخطط الحالات اليومية =====
+    const dayMap = {};
+
+    newCases.forEach(c => {
+      const date = new Date(c.createdAt).toLocaleDateString();
+      dayMap[date] = (dayMap[date] || 0) + 1;
+    });
+
+    new Chart(document.getElementById("dailyChart"), {
+      type: "line",
+      data: {
+        labels: Object.keys(dayMap),
+        datasets: [{
+          label: "عدد الحالات",
+          data: Object.values(dayMap),
+          borderColor: "#0f766e",
+          tension: 0.3,
+          fill: false
+        }]
+      }
+    });
+
+  </script>
+
+</body>
+</html>
