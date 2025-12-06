@@ -135,10 +135,7 @@ const vacationList = [
           <p>الفني المسؤول: ${c.technicianName}</p>
           <p style="font-size:11px;color:#64748b">وقت الدخول: ${new Date(c.createdAt).toLocaleString()}</p>
 
-          ${isVacation ? 
-            "<p style='color:#b91c1c;font-weight:bold;'>⚠️ الفني في إجازة</p>" 
-            : ""}
-
+         
           <button class="btn-logout" style="background:#16a34a;margin-top:10px;width:100%;" onclick="markAsEdited(${c.id})">
             تحديث الحالة
           </button>
