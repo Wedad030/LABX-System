@@ -1,173 +1,76 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>تفاصيل الحالة - LABX</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <title>تفاصيل الحالة</title>
+    <link rel="stylesheet" href="style.css">
 
-  <style>
-    .details-box {
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      margin-top: 20px;
-      line-height: 1.9;
-    }
-    .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #0f766e;
-      margin-top: 18px;
-      margin-bottom: 5px;
-    }
-    .qr-img {
-      display: block;
-      margin: 15px auto;
-      width: 180px;
-      height: 180px;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
-    }
-    .status-pill {
-      display: inline-block;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      margin-top: 6px;
-      color: white;
-    }
-  </style>
+    <style>
+        .card {
+            padding: 20px;
+            margin: 25px auto;
+            background: white;
+            border-radius: 14px;
+            max-width: 450px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            animation: fadeIn 0.6s ease-out;
+        }
+        h2 { margin-bottom: 15px; }
+        p { margin: 6px 0; font-size: 16px; }
+    </style>
 </head>
 
-<body class="bg">
-<script>
-// حماية النظام
-if (localStorage.getItem("labxLogged") !== "true") {
-    window.location.href = "login.html";
-}
-</script>
-<div class="layout">
+<body class="bg fade-in">
 
-  <!-- الهيدر -->
-  <header class="top-header">
-    <div class="top-header-right">
-      <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
-      <div class="brand-text">
-        <div class="brand-title">LABX DENTAL</div>
-        <div class="brand-sub">تفاصيل الحالة</div>
-      </div>
-    </div>
+<div class="card">
+    <h2>🦷 تفاصيل الحالة</h2>
 
-    <div class="top-header-left">
-      <button onclick="window.history.back()" class="btn-logout" style="background:#0f766e;">
-        رجوع
-      </button>
-    </div>
-  </header>
-
-
-  <!-- المحتوى -->
-  <main class="main-card fade-in">
-    <h2 style="text-align:center;margin-bottom:10px;">بيانات الحالة الكاملة</h2>
-
-    <div id="details" class="details-box">
-      تحميل البيانات...
-    </div>
-
-    <button onclick="window.print()"
-            class="btn-logout"
-            style="background:#0f766e;margin-top:20px;width:100%;">
-      طباعة تفاصيل الحالة 🖨
-    </button>
-  </main>
+    <p><b>اسم المريض:</b> <span id="patientName"></span></p>
+    <p><b>رقم الملف:</b> <span id="fileNumber"></span></p>
+    <p><b>الطبيب:</b> <span id="doctorName"></span></p>
+    <p><b>المساعد:</b> <span id="assistantName"></span></p>
+    <p><b>العيادة:</b> <span id="clinicNumber"></span></p>
+    <p><b>نوع الحالة:</b> <span id="caseType"></span></p>
+    <p><b>الفني:</b> <span id="technician"></span></p>
+    <p><b>الملاحظات:</b> <span id="notes"></span></p>
+    <p><b>الحالة:</b> <span id="status"></span></p>
+    <p><b>تاريخ الإدخال:</b> <span id="createdAt"></span></p>
 </div>
 
+<!-- Firebase -->
+<script type="module">
+    import { getCaseById } from "./firebase.js";
 
-<script>
-// جلب باراميتر من الرابط ?file=...
-function getParam(name) {
-  const params = new URLSearchParams(window.location.search);
-  return params.get(name);
-}
+    // استخراج ID من QR
+    const urlParams = new URLSearchParams(window.location.search);
+    const caseId = urlParams.get("id");
 
-let fileParam = getParam("file");
-let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
-let techList = JSON.parse(localStorage.getItem("techList") || "[]");
+    if (!caseId) {
+        alert("لا يوجد رقم حالة!");
+    } else {
+        loadCaseData(caseId);
+    }
 
-// خريطة ألوان الفنيين
-let techColors = {};
-techList.forEach(t => techColors[t.name] = t.color);
+    async function loadCaseData(id) {
+        const data = await getCaseById(id);
 
-const box = document.getElementById("details");
+        if (!data) {
+            alert("❌ لم يتم العثور على بيانات لهذه الحالة");
+            return;
+        }
 
-let caseData = null;
-
-// نحاول نلاقي الحالة
-if (fileParam) {
-  caseData = cases.find(c => c.fileNumber === fileParam);
-} else {
-  // احتياط: إذا في selectedCaseId محفوظ سابقاً
-  const selectedId = localStorage.getItem("selectedCaseId");
-  if (selectedId) {
-    caseData = cases.find(c => c.id == selectedId);
-  }
-}
-
-if (!caseData) {
-  box.innerHTML = "<p style='color:#b91c1c;font-weight:bold;'>❌ لم يتم العثور على بيانات هذه الحالة</p>";
-} else {
-
-  // لون الفني
-  let techColor = techColors[caseData.technicianName] || "#0f766e";
-
-  // ستايل حالة الطلب
-  let statusColor = "#0f766e";
-  if (caseData.status === "تحت الإجراء") statusColor = "#f59e0b";
-  if (caseData.status === "جاهزة") statusColor = "#22c55e";
-  if (caseData.status === "تم التسليم للعيادة") statusColor = "#2563eb";
-
-  box.innerHTML = `
-    <h3 style="font-size:22px;margin-bottom:5px;">${caseData.patientName}</h3>
-    <p><strong>رقم الملف:</strong> ${caseData.fileNumber}</p>
-
-    <span class="status-pill" style="background:${statusColor};">
-      حالة الطلب: ${caseData.status || "غير محدد"}
-    </span>
-
-    <div class="section-title">بيانات العيادة</div>
-    <p><strong>اسم الطبيب:</strong> ${caseData.doctorName || "-"}</p>
-    <p><strong>اسم المساعدة:</strong> ${caseData.assistantName || "-"}</p>
-    <p><strong>رقم العيادة:</strong> ${caseData.clinicNumber || "-"}</p>
-
-    <div class="section-title">بيانات المعمل</div>
-    <p><strong>نوع الحالة / القسم:</strong> ${caseData.caseType || "-"}</p>
-    <p><strong>الفني المسؤول:</strong>
-      <span style="padding:3px 10px;border-radius:999px;background:${techColor};color:white;">
-        ${caseData.technicianName || "-"}
-      </span>
-    </p>
-    <p><strong>ملاحظات:</strong> ${caseData.notes || "لا توجد ملاحظات"}</p>
-
-    <div class="section-title">الجدول الزمني للحالة</div>
-    <p><strong>تاريخ إنشاء الطلب:</strong> ${caseData.createdAt || "-"}</p>
-    ${caseData.readyTime ? `<p><strong>تاريخ جاهزية الحالة:</strong> ${caseData.readyTime}</p>` : ""}
-    ${caseData.distributedTime ? `<p><strong>تاريخ توزيع الحالة:</strong> ${caseData.distributedTime}</p>` : ""}
-    ${caseData.receivedAt ? `<p><strong>تاريخ استلام العيادة:</strong> ${caseData.receivedAt}</p>` : ""}
-
-    <div class="section-title">تفاصيل استلام العيادة</div>
-    <p><strong>اسم المساعدة المستلمة:</strong> ${caseData.receivedBy || "-"}</p>
-    <p><strong>رقم العيادة (استلام):</strong> ${caseData.clinicNo || "-"}</p>
-
-    <div class="section-title">رمز الـ QR</div>
-    <img class="qr-img"
-         src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${caseData.qrValue}"
-         alt="QR Code">
-
-    <p><strong>قيمة الـ QR:</strong> ${caseData.qrValue}</p>
-  `;
-}
+        // تعبئة البيانات
+        document.getElementById("patientName").innerText = data.patientName;
+        document.getElementById("fileNumber").innerText = data.fileNumber;
+        document.getElementById("doctorName").innerText = data.doctorName;
+        document.getElementById("assistantName").innerText = data.assistantName;
+        document.getElementById("clinicNumber").innerText = data.clinicNumber;
+        document.getElementById("caseType").innerText = data.caseType;
+        document.getElementById("technician").innerText = data.technicianName;
+        document.getElementById("notes").innerText = data.notes || "—";
+        document.getElementById("status").innerText = data.status;
+        document.getElementById("createdAt").innerText = data.createdAt;
+    }
 </script>
 
 </body>
