@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إعدادات النظام - LABX</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .settings-box {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px #00000015;
+        }
+
+        .settings-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #0f766e;
+            margin-bottom: 10px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .btn-small {
+            padding: 10px;
+            background: #0f766e;
+            border-radius: 10px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        td, th {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+
+<body class="bg">
+
+<div class="layout">
+
+    <!-- الهيدر -->
+    <header class="top-header">
+        <div class="top-header-right">
+            <img src="labx.jpeg" class="logo-img" alt="LABX">
+            <div class="brand-text">
+                <div class="brand-title">LABX DENTAL</div>
+                <div class="brand-sub">إعدادات النظام</div>
+            </div>
+        </div>
+
+        <div class="top-header-left">
+            <button onclick="window.location.href='index.html'" 
+                    class="btn-logout" style="background:#0f766e;">
+                رجوع
+            </button>
+        </div>
+    </header>
+
+
+    <!-- المحتوى -->
+    <main class="main-card fade-in">
+
+        <!-- قسم الفنيين -->
+        <div class="settings-box">
+            <div class="settings-title">إدارة الفنيين</div>
+
+            <input id="techName" class="input" placeholder="اسم الفني">
+            <input id="techColor" class="input" placeholder="لون الفني (HEX)">
+            <button onclick="addTechnician()" class="btn-small">إضافة فني</button>
+
+            <table id="techTable"></table>
+        </div>
+
+
+        <!-- قسم الإجازات -->
+        <div class="settings-box">
+            <div class="settings-title">الفنيون في إجازة</div>
+
+            <input id="vacName" class="input" placeholder="اسم الفني في إجازة">
+            <button onclick="addVacation()" class="btn-small">إضافة إلى قائمة الإجازات</button>
+
+            <table id="vacTable"></table>
+        </div>
+
+
+        <!-- قسم الأقسام -->
+        <div class="settings-box">
+            <div class="settings-title">إدارة الأقسام الطبية</div>
+
+            <input id="deptName" class="input" placeholder="اسم القسم (مثال: CAD/CAM)">
+            <button onclick="addDepartment()" class="btn-small">إضافة قسم</button>
+
+            <table id="deptTable"></table>
+        </div>
+
+
+    </main>
+</div>
+
+
+<script>
+// ----------------------------------------------------------
+// 1) قواعد البيانات داخل LocalStorage
+// ----------------------------------------------------------
+let tech = JSON.parse(localStorage.getItem("techList") || "[]");
+let vac = JSON.parse(localStorage.getItem("vacList") || "[]");
+let dept = JSON.parse(localStorage.getItem("deptList") || "[]");
+
+
+// ----------------------------------------------------------
+// 2) إضافة فني
+// ----------------------------------------------------------
+function addTechnician() {
+    const name = document.getElementById("techName").value.trim();
+    const color = document.getElementById("techColor").value.trim();
+
+    if (!name || !color) {
+        alert("يرجى إدخال اسم ولون الفني");
+        return;
+    }
+
+    tech.push({ name, color });
+    localStorage.setItem("techList", JSON.stringify(tech));
+    renderTech();
+}
+
+
+// ----------------------------------------------------------
+// 3) إضافة فني لإجازة
+// ----------------------------------------------------------
+function addVacation() {
+    const name = document.getElementById("vacName").value.trim();
+    if (!name) {
+        alert("يرجى إدخال اسم الفني");
+        return;
+    }
+
+    vac.push(name);
+    localStorage.setItem("vacList", JSON.stringify(vac));
+    renderVac();
+}
+
+
+// ----------------------------------------------------------
+// 4) إضافة قسم
+// ----------------------------------------------------------
+function addDepartment() {
+    const name = document.getElementById("deptName").value.trim();
+    if (!name) {
+        alert("يرجى إدخال اسم القسم");
+        return;
+    }
+
+    dept.push(name);
+    localStorage.setItem("deptList", JSON.stringify(dept));
+    renderDept();
+}
+
+
+// ----------------------------------------------------------
+// 5) عرض الجداول
+// ----------------------------------------------------------
+function renderTech() {
+    const t = document.getElementById("techTable");
+    t.innerHTML = `
+        <tr><th>الفني</th><th>لون الفني</th></tr>
+    `;
+
+    tech.forEach(item => {
+        t.innerHTML += `
+            <tr>
+                <td>${item.name}</td>
+                <td><span style="background:${item.color};padding:5px 12px;border-radius:8px;color:white;">${item.color}</span></td>
+            </tr>
+        `;
+    });
+}
+
+function renderVac() {
+    const t = document.getElementById("vacTable");
+    t.innerHTML = `
+        <tr><th>اسم الفني</th></tr>
+    `;
+
+    vac.forEach(item => {
+        t.innerHTML += `<tr><td>${item}</td></tr>`;
+    });
+}
+
+function renderDept() {
+    const t = document.getElementById("deptTable");
+    t.innerHTML = `
+        <tr><th>القسم</th></tr>
+    `;
+
+    dept.forEach(item => {
+        t.innerHTML += `<tr><td>${item}</td></tr>`;
+    });
+}
+
+
+// أول تشغيل
+renderTech();
+renderVac();
+renderDept();
+
+</script>
+
+</body>
+</html>
