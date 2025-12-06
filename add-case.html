@@ -149,12 +149,45 @@ function saveCase() {
         qrValue
     };
 
-    cases.push(newCase);
-    localStorage.setItem("labxNewCases", JSON.stringify(cases));
+   import { saveCaseToCloud } from "./firebase.js";
 
-    alert("✔️ تم حفظ الحالة بنجاح!");
+document.getElementById("caseForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+
+  const patientName = document.getElementById("patientName").value;
+  const fileNumber = document.getElementById("fileNumber").value;
+  const doctorName = document.getElementById("doctorName").value;
+  const assistantName = document.getElementById("assistantName").value;
+  const clinicNumber = document.getElementById("clinicNumber").value;
+  const caseType = document.getElementById("caseType").value;
+  const technicianName = document.getElementById("technicianName").value;
+  const notes = document.getElementById("notes").value;
+
+  const qrValue = `${patientName}-${fileNumber}-${Date.now()}`;
+
+  const newCase = {
+    patientName,
+    fileNumber,
+    doctorName,
+    assistantName,
+    clinicNumber,
+    caseType,
+    technicianName,
+    notes,
+    createdAt: new Date().toISOString(),
+    status: "تحت الإجراء",
+    qrValue
+  };
+
+  try {
+    await saveCaseToCloud(newCase);
+    alert("✨ تم حفظ الحالة بنجاح في Firebase");
     window.location.href = "index.html";
-}
+  } catch (err) {
+    alert("❌ حدث خطأ أثناء الحفظ");
+    console.error(err);
+  }
+});
 
 </script>
 
