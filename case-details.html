@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تفاصيل الحالة - LABX</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .details-box {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+      margin-top: 20px;
+      line-height: 2;
+    }
+
+    .qr-img {
+      width: 140px;
+      margin: 15px auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #0f766e;
+    }
+  </style>
+</head>
+
+<body class="bg">
+
+  <div class="layout">
+
+    <!-- الهيدر -->
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">Case Details</div>
+        </div>
+      </div>
+
+      <div class="top-header-left">
+        <button onclick="window.location.href='index.html'" class="btn-logout" style="background:#0f766e;">
+          رجوع للواجهة
+        </button>
+      </div>
+    </header>
+
+    <!-- الصفحة -->
+    <main class="main-card fade-in">
+
+      <h2 style="text-align:center;">تفاصيل الحالة</h2>
+
+      <div id="caseDetails" class="details-box">
+        تحميل البيانات...
+      </div>
+
+    </main>
+  </div>
+
+<script>
+  // جلب ID الحالة الذي تم حفظه عند مسح QR
+  const selectedCaseId = localStorage.getItem("selectedCaseId");
+
+  const cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+  const caseData = cases.find(c => c.id == selectedCaseId);
+
+  const box = document.getElementById("caseDetails");
+
+  if (!caseData) {
+    box.innerHTML = "<p style='color:#b91c1c;font-weight:bold;'>❌ لم يتم العثور على بيانات الحالة</p>";
+  } else {
+    box.innerHTML = `
+      <h3>${caseData.patientName}</h3>
+      <p><strong>رقم الملف:</strong> ${caseData.fileNumber}</p>
+      <p><strong>اسم الطبيب:</strong> ${caseData.doctorName}</p>
+      <p><strong>اسم المساعدة:</strong> ${caseData.assistantName}</p>
+      <p><strong>رقم العيادة:</strong> ${caseData.clinicNumber}</p>
+      <p><strong>نوع الحالة:</strong> ${caseData.caseType}</p>
+      <p><strong>الفني المنفذ:</strong> ${caseData.technicianName}</p>
+      <p><strong>ملاحظات:</strong> ${caseData.notes || "لا يوجد"}</p>
+
+      <div class="section-title">رمز الـ QR</div>
+      <img class="qr-img" src="${caseData.qrImage}" alt="QR">
+
+      <p><strong>رقم الـ QR:</strong> ${caseData.qrValue}</p>
+
+      <div class="section-title">تاريخ إنشاء الطلب</div>
+      <p>${new Date(caseData.createdAt).toLocaleString()}</p>
+
+      <br>
+      <button onclick="window.print()" class="btn-logout" style="background:#0f766e;width:100%;">
+        طباعة الحالة
+      </button>
+    `;
+  }
+</script>
+
+</body>
+</html>
