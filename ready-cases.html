@@ -1,149 +1,127 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>الحالات الجاهزة والتوزيع - LABX</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>الحالات الجاهزة - LABX</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg">
-  <div class="layout">
+<div class="layout">
 
     <!-- الهيدر -->
     <header class="top-header">
-      <div class="top-header-right">
-        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
-        <div class="brand-text">
-          <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">Ready Cases & Distribution</div>
+        <div class="top-header-right">
+            <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
+            <div class="brand-text">
+                <div class="brand-title">LABX DENTAL</div>
+                <div class="brand-sub">الحالات الجاهزة</div>
+            </div>
         </div>
-      </div>
 
-      <div class="top-header-left">
-        <div class="user-info">
-          <span class="hello">مرحبًا،</span>
-          <span id="userName" class="user-name"></span>
+        <div class="top-header-left">
+            <div class="user-info">
+                <span class="hello">👋 أهلاً </span>
+                <span id="username" class="user-name"></span>
+            </div>
         </div>
-        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
-      </div>
     </header>
 
     <!-- المحتوى -->
     <main class="main-card fade-in">
 
-      <p class="role-badge" id="roleLabel">الحالات الجاهزة — توزيع العيادات</p>
+        <h2>الحالات الجاهزة للتسليم</h2>
 
-      <h2 style="margin-bottom:10px;">الحالات الجاهزة للتسليم</h2>
+        <div id="readyCasesContainer" class="tiles-grid"></div>
 
-      <div id="readyContainer" class="tiles-grid slide-up"></div>
+        <h2 style="margin-top:25px;">توزيع الحالات على العيادات</h2>
 
-
-      <h2 style="margin-top:22px;margin-bottom:10px;">مناطق التوزيع</h2>
-
-      <div class="tiles-grid slide-up">
-
-        <div class="tile" onclick="assignArea('RDC1')">
-          <h3>RDC1</h3>
-          <p>منطقة شهاب</p>
+        <!-- RDC1 -->
+        <h3>RDC1</h3>
+        <div class="tiles-grid" id="rdc1">
+            <button class="tile" onclick="moveToBox('RDC1 - BOX 1')">BOX 1</button>
+            <button class="tile" onclick="moveToBox('RDC1 - BOX 2')">BOX 2</button>
+            <button class="tile" onclick="moveToBox('RDC1 - BOX 3')">BOX 3</button>
+            <button class="tile" onclick="moveToBox('RDC1 - BOX 4')">BOX 4</button>
         </div>
 
-        <div class="tile" onclick="assignArea('RDC2')">
-          <h3>RDC2</h3>
-          <p>منطقة أمين</p>
+        <!-- RDC2 -->
+        <h3 style="margin-top:20px;">RDC2</h3>
+        <div class="tiles-grid" id="rdc2">
+            <button class="tile" onclick="moveToBox('RDC2 - BOX 1')">BOX 1</button>
+            <button class="tile" onclick="moveToBox('RDC2 - BOX 2')">BOX 2</button>
+            <button class="tile" onclick="moveToBox('RDC2 - BOX 3')">BOX 3</button>
         </div>
 
-        <div class="tile" onclick="assignArea('Box 1')">
-          <h3>Box 1</h3>
+        <!-- تخصصات -->
+        <h3 style="margin-top:20px;">التخصصات</h3>
+        <div class="tiles-grid" id="specialty">
+            <button class="tile" onclick="moveToBox('المؤقت')">المؤقت</button>
+            <button class="tile" onclick="moveToBox('المتحرك')">المتحرك</button>
+            <button class="tile" onclick="moveToBox('PFM')">PFM</button>
+            <button class="tile" onclick="moveToBox('CAD/CAM')">CAD/CAM</button>
         </div>
-
-        <div class="tile" onclick="assignArea('Box 2')">
-          <h3>Box 2</h3>
-        </div>
-
-        <div class="tile" onclick="assignArea('Box 3')">
-          <h3>Box 3</h3>
-        </div>
-
-        <div class="tile" onclick="assignArea('Box 4')">
-          <h3>Box 4</h3>
-        </div>
-
-      </div>
-
-      <div style="margin-top:22px;">
-        <a href="index.html" class="btn-logout" style="background:#0f766e;text-decoration:none;">رجوع للواجهة</a>
-      </div>
 
     </main>
+</div>
 
-  </div>
+<script>
+document.getElementById("username").innerText =
+    localStorage.getItem("labxUser") || "User";
 
-  <script src="app.js"></script>
+let cases = JSON.parse(localStorage.getItem("labxNewCases")) || [];
 
-  <script>
-    const techColors = {
-      "قاسم": "#3b82f6",
-      "أحمد": "#8b5cf6",
-      "سعيد": "#f59e0b",
-      "فني آخر": "#6b7280"
-    };
+// عرض الحالات الجاهزة فقط
+function showReadyCases() {
+    const container = document.getElementById("readyCasesContainer");
+    container.innerHTML = "";
 
-    const readyCases = JSON.parse(localStorage.getItem("labxReadyCases") || "[]");
-    const newCases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+    const readyCases = cases.filter(c => c.status === "جاهزة");
 
-    const readyContainer = document.getElementById("readyContainer");
-
-    function renderReadyCases() {
-      readyContainer.innerHTML = "";
-
-      readyCases.forEach(rc => {
-        const card = document.createElement("div");
-        card.className = "tile";
-        card.style.borderRight = `8px solid ${techColors[rc.technicianName] || "#0f766e"}`;
-
-        card.innerHTML = `
-          <h3>${rc.patientName}</h3>
-          <p>رقم الملف: ${rc.fileNumber}</p>
-          <p>نوع الحالة: ${rc.caseType}</p>
-          <p>الفني: ${rc.technicianName}</p>
-
-          <button onclick="selectCase(${rc.id})" class="btn-logout" style="background:#16a34a;margin-top:10px;width:100%;">
-            اختر للتوزيع
-          </button>
+    readyCases.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "tile";
+        div.innerHTML = `
+            <h3>${c.patientName}</h3>
+            <p>رقم الملف: ${c.fileNumber}</p>
+            <p>الفني: ${c.technicianName}</p>
+            <p style="font-size:12px;color:#555">جاهزة منذ: ${c.readyTime}</p>
+            <button class="btn-logout" style="margin-top:10px;background:#163a43;"
+                onclick="selectCase('${c.fileNumber}')">اختيار</button>
         `;
-        readyContainer.appendChild(card);
-      });
-    }
+        container.appendChild(div);
+    });
+}
 
-    let selectedCase = null;
+let selectedCase = null;
 
-    function selectCase(id) {
-      selectedCase = id;
-      alert("✔ تم اختيار الحالة — الآن اختر منطقة التوزيع");
-    }
+function selectCase(file) {
+    selectedCase = file;
+    alert("✔ تم اختيار الحالة — الآن حددي البوكس المناسبة.");
+}
 
-    function assignArea(area) {
-      if (!selectedCase) {
-        alert("⚠️ الرجاء اختيار حالة أولاً");
+// نقل الحالة إلى بوكس معيّن
+function moveToBox(boxName) {
+    if (!selectedCase) {
+        alert("⚠️ يرجى اختيار حالة أولاً.");
         return;
-      }
-
-      const index = readyCases.findIndex(c => c.id === selectedCase);
-      if (index === -1) return;
-
-      readyCases[index].distribution = area;
-      readyCases[index].distributedAt = new Date().toISOString();
-
-      localStorage.setItem("labxReadyCases", JSON.stringify(readyCases));
-
-      alert(`✔ تم توزيع الحالة على: ${area}`);
-
-      selectedCase = null;
-      renderReadyCases();
     }
 
-    renderReadyCases();
-  </script>
+    const index = cases.findIndex(c => c.fileNumber === selectedCase);
+
+    cases[index].assignedBox = boxName;
+    cases[index].status = "تم توزيعها";
+    cases[index].distributedTime = new Date().toLocaleString();
+
+    localStorage.setItem("labxNewCases", JSON.stringify(cases));
+
+    alert("✅ تم نقل الحالة إلى: " + boxName);
+    selectedCase = null;
+    showReadyCases();
+}
+
+showReadyCases();
+</script>
 
 </body>
 </html>
