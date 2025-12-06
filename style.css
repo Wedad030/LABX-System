@@ -224,8 +224,75 @@
     align-self: stretch;
     justify-content: space-between;
   }
+/* ============================
+   🔥 Animations & Smooth Motion
+   ============================ */
 
+/* دخول الصفحة بالكامل */
+.fade-in {
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* صعود الكروت */
+.slide-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideUp 0.7s ease-out forwards;
+}
+
+/* حركة البطاقات عند الظهور */
+.tile {
+    animation: cardPop 0.4s ease-out;
+}
+
+/* هتان الحركة عند مرور الماوس */
+.tile:hover {
+    transform: translateY(-6px);
+    transition: 0.25s;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+/* زر دخول / خروج */
+.btn-logout {
+    transition: 0.25s;
+}
+
+.btn-logout:hover {
+    transform: scale(1.05);
+    opacity: .9;
+}
+
+/* الهيدر */
+.top-header {
+    animation: slideDown 0.7s ease-out;
+}
+
+/* ----------------------- */
+/* Keyframes Animations    */
+/* ----------------------- */
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+    0% { opacity: 0; transform: translateY(-20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardPop {
+    0% { transform: scale(0.97); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
   .layout {
     max-width: 100%;
   }
 }
+
