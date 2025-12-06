@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>ماسح QR - LABX</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- مكتبة ماسح QR -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    #reader {
+      width: 320px;
+      margin: auto;
+      margin-top: 20px;
+    }
+
+    .result-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 20px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+
+<body class="bg">
+
+  <div class="layout">
+
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">QR Scanner</div>
+        </div>
+      </div>
+
+      <div class="top-header-left">
+        <button onclick="window.location.href='index.html'" class="btn-logout" style="background:#0f766e;">
+          رجوع
+        </button>
+      </div>
+    </header>
+
+    <main class="main-card fade-in">
+      <h2 style="text-align:center;margin-bottom:15px;">ماسح QR - الكاميرا</h2>
+
+      <div id="reader"></div>
+
+      <div id="resultBox" class="result-box" style="display:none;">
+        <h3>نتيجة المسح</h3>
+        <p id="qrResult"></p>
+
+        <button id="openCaseBtn" class="btn-logout" style="background:#0f766e;margin-top:10px;">
+          فتح الحالة
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+<script>
+  // تشغيل الماسح
+  function onScanSuccess(decodedText) {
+    document.getElementById("resultBox").style.display = "block";
+    document.getElementById("qrResult").textContent = decodedText;
+
+    // البحث عن الحالة في النظام
+    const cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+    const foundCase = cases.find(c => c.qrValue === decodedText);
+
+    // إذا وجدنا الحالة
+    document.getElementById("openCaseBtn").onclick = () => {
+      if (foundCase) {
+        // نحفظ ID الحالة ونرسل المستخدم للصفحة
+        localStorage.setItem("selectedCaseId", foundCase.id);
+        window.location.href = "case-details.html";
+      } else {
+        alert("❌ لا توجد حالة بهذا QR");
+      }
+    };
+  }
+
+  // إعداد الكاميرا
+  let html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: 250 },
+    false
+  );
+  html5QrcodeScanner.render(onScanSuccess);
+</script>
+
+</body>
+</html>
