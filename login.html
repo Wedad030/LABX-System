@@ -4,87 +4,93 @@
     <meta charset="UTF-8">
     <title>تسجيل الدخول - LABX</title>
     <link rel="stylesheet" href="style.css">
+
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+        .login-container {
+            max-width: 380px;
+            margin: 80px auto;
+            padding: 35px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.09);
+            animation: formAppear 0.7s ease-out forwards;
+            opacity: 0;
         }
-        .login-box {
-            background: white;
-            width: 350px;
-            padding: 25px;
-            border-radius: 18px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+
+        .login-title {
             text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--green-main);
         }
-        .login-input {
-            width: 100%;
-            padding: 12px;
-            margin-top: 12px;
-            border-radius: 10px;
-            border: 1px solid #94a3b8;
+
+        .login-sub {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 25px;
         }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            margin-top: 15px;
-            background: #0f766e;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .login-btn:hover {
-            background: #115e59;
+
+        .login-logo {
+            width: 75px;
+            display: block;
+            margin: 0 auto 15px auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
     </style>
 </head>
 
-<body>
+<body class="page-enter">
 
-<div class="login-box">
-    <img src="labx.jpeg" width="80" style="border-radius:12px;margin-bottom:10px;">
+<div class="layout">
 
-    <h2>LABX System</h2>
-    <p style="color:#475569;margin-bottom:15px;">تسجيل دخول المدير</p>
+    <div class="login-container">
+        
+        <!-- اللوقو -->
+        <img src="labx.jpeg" class="login-logo">
 
-    <input id="username" class="login-input" placeholder="اسم المستخدم">
-    <input id="password" type="password" class="login-input" placeholder="كلمة المرور">
+        <!-- العنوان -->
+        <div class="login-title">LABX Dental</div>
+        <div class="login-sub">تسجيل الدخول للنظام</div>
 
-    <button class="login-btn" onclick="login()">دخول</button>
+        <!-- نموذج الدخول -->
+        <form id="loginForm" class="form-animate">
 
-    <p id="errorMsg" style="color:#dc2626;margin-top:10px;display:none;">
-        ❌ اسم المستخدم أو كلمة المرور غير صحيحة
-    </p>
+            <label>اسم المستخدم</label>
+            <input type="text" id="username" placeholder="ادخل اسم المستخدم" required>
+
+            <label>كلمة المرور</label>
+            <input type="password" id="password" placeholder="••••••" required>
+
+            <button type="submit" class="btn" style="width:100%;margin-top:10px;">
+                تسجيل الدخول
+            </button>
+
+        </form>
+
+    </div>
+
 </div>
 
 
+<!-- 🔥 نظام تسجيل الدخول -->
 <script>
-// بيانات الدخول الأساسية (تقدرين تغيّرينها لاحقاً من settings)
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "labx2026";
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-function login() {
-    let user = document.getElementById("username").value.trim();
-    let pass = document.getElementById("password").value.trim();
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
 
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-
-        // حفظ تسجيل الدخول
+    // 🔑 بيانات الدخول
+    if (user === "admin" && pass === "labx2026") {
         localStorage.setItem("labxLogged", "true");
-
-        // دخول النظام
         window.location.href = "index.html";
-
-    } else {
-        document.getElementById("errorMsg").style.display = "block";
+    } 
+    else {
+        alert("❌ اسم المستخدم أو كلمة المرور غير صحيحة");
     }
-}
+});
 </script>
 
 </body>
