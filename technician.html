@@ -9,165 +9,96 @@
 <body class="bg">
 <div class="layout">
 
-    <!-- الهيدر -->
+    <!-- هيدر الصفحة -->
     <header class="top-header">
         <div class="top-header-right">
             <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
             <div class="brand-text">
                 <div class="brand-title">LABX DENTAL</div>
-                <div class="brand-sub">Technician Panel</div>
+                <div class="brand-sub">لوحة الفني</div>
             </div>
         </div>
 
         <div class="top-header-left">
-            <div class="user-info">
-                <span class="hello">👋 أهلاً </span>
-                <span id="username" class="user-name"></span>
-            </div>
+            <button onclick="window.location.href='index.html'"
+                    class="btn-logout" style="background:#0f766e;">
+                رجوع
+            </button>
         </div>
     </header>
 
-    <!-- المحتوى -->
+
+    <!-- محتوى الصفحة -->
     <main class="main-card fade-in">
 
-        <p class="role-badge" id="roleLabel">الحالات التي تحت الإجراء</p>
-
-        <h2 style="margin-bottom: 10px;">الحالات تحت العمل</h2>
-
-        <!-- قائمة الحالات -->
-        <div id="casesContainer" class="tiles-grid slide-up"></div>
-
-        <h2 style="margin-top: 22px; margin-bottom: 10px;">تنبيه الإجازات</h2>
+        <h2 style="margin-bottom:15px;">الحالات تحت الإجراء</h2>
 
         <div id="vacationAlert"
-             style="padding:12px;background:#fecaca;border-radius:12px;color:#b91c1c;display:none;">
-            ⚠️ يوجد فني في إجازة – لا يمكن استلام حالات جديدة
+             style="padding:10px;background:#fed7aa;border-radius:10px;color:#b45309;display:none;">
+            ⚠ يوجد فني في إجازة حالياً
         </div>
 
-        <div style="margin-top: 20px;">
-            <a href="index.html"
-               class="btn-logout"
-               style="background:#f7666e;text-decoration:none;">رجوع للواجهة الرئيسية</a>
-        </div>
+        <div id="casesContainer" class="tiles-grid"></div>
 
     </main>
+
 </div>
 
-<script src="app.js"></script>
 
 <script>
-/* ------------------------------------------------------
-   1) جلب اسم المستخدم من LocalStorage
--------------------------------------------------------*/
-document.getElementById("username").innerText =
-    localStorage.getItem("labxUser") || "User";
+// ---------------------------------------------------------
+// جلب الفنيين + الإجازات من الإعدادات
+// ---------------------------------------------------------
+let techList = JSON.parse(localStorage.getItem("techList") || "[]");
+let vacList = JSON.parse(localStorage.getItem("vacList") || "[]");
+
+let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
 
 
-/* ------------------------------------------------------
-   2) ألوان الفنيين (الأساسي + لون التعديل)
--------------------------------------------------------*/
-const techColors = {
-
-    /* قسم الكاد كام */
-    "قاسم عسيري": { main: "#3b82f6", edited: "#22c55e" },
-    "أحمد كوشان": { main: "#3b82f6", edited: "#22c55e" },
-    "عبدالله الرشيد": { main: "#3b82f6", edited: "#22c55e" },
-    "عبدالله الشهراني": { main: "#3b82f6", edited: "#22c55e" },
-    "أحمد القحطاني": { main: "#3b82f6", edited: "#22c55e" },
-    "يحيى عسيري": { main: "#3b82f6", edited: "#22c55e" },
-
-    /* قسم PFM */
-    "سلطان الاحمري": { main: "#8b5cf6", edited: "#22c55e" },
-    "أيمن الشهري": { main: "#8b5cf6", edited: "#22c55e" },
-    "فيصل الوادعي": { main: "#8b5cf6", edited: "#22c55e" },
-
-    /* قسم الأوثرو */
-    "تركي الشهري": { main: "#14b8a6", edited: "#22c55e" },
-    "وليد الشهري": { main: "#14b8a6", edited: "#22c55e" },
-    "أسامة عسيري": { main: "#14b8a6", edited: "#22c55e" },
-
-    /* قسم المتحرك */
-    "رشيد الكثيري": { main: "#22c55e", edited: "#84cc16" },
-    "أحمد الصخري": { main: "#22c55e", edited: "#84cc16" },
-    "عبداللطيف عسيري": { main: "#22c55e", edited: "#84cc16" },
-    "محمد الشرفان": { main: "#22c55e", edited: "#84cc16" },
-    "الاء": { main: "#22c55e", edited: "#84cc16" },
-    "هيام": { main: "#22c55e", edited: "#84cc16" },
-    "محمد الغامدي": { main: "#22c55e", edited: "#84cc16" },
-    "منصور العويرضي": { main: "#22c55e", edited: "#84cc16" },
-    "عبدالله الغامدي": { main: "#22c55e", edited: "#84cc16" },
-
-    /* قسم المؤقت */
-    "احمد الشبل": { main: "#f59e0b", edited: "#22c55e" },
-    "وليد السويري": { main: "#f59e0b", edited: "#22c55e" },
-    "فهد العتيبي": { main: "#f59e0b", edited: "#22c55e" },
-    "عبدالله العود": { main: "#f59e0b", edited: "#22c55e" },
-
-    /* الصب */
-    "فهد الخميس": { main: "#6b7280", edited: "#22c55e" },
-};
+// تحويل قائمة الفنيين إلى خريطة (اسم → لون)
+const techColors = {};
+techList.forEach(t => {
+    techColors[t.name] = t.color;
+});
 
 
-/* ------------------------------------------------------
-   3) قائمة الفنيين الذين في إجازة (لون برتقالي)
--------------------------------------------------------*/
-const vacationList = [
-    "تركي الشهري",
-    "سلطان الاحمري",
-    "يحيى عسيري",
-];
-
-
-/* ------------------------------------------------------
-   4) جلب الحالات من LocalStorage
--------------------------------------------------------*/
-let cases = JSON.parse(localStorage.getItem("labxNewCases")) || [];
-
-
-/* ------------------------------------------------------
-   5) عرض الحالات على الشاشة
--------------------------------------------------------*/
+// ---------------------------------------------------------
+// عرض الحالات
+// ---------------------------------------------------------
 function renderCases() {
     const container = document.getElementById("casesContainer");
     container.innerHTML = "";
 
-    cases.forEach(c => {
+    const underProcess = cases.filter(c => c.status === "تحت الإجراء");
 
-        const isVacation = vacationList.includes(c.technicianName);
+    underProcess.forEach(c => {
+
+        // هل هذا الفني في إجازة؟
+        let isVacation = vacList.includes(c.technicianName);
 
         const card = document.createElement("div");
         card.className = "tile";
 
-        // إضافة لون حسب الفني
-        card.style.borderRight =
-            "8px solid " + (techColors[c.technicianName]?.main || "#0f766e");
-
-        // إذا الحالة معدّلة → يظهر لون مختلف
-        if (c.isEdited) {
-            card.style.borderRight =
-                "8px solid " + (techColors[c.technicianName]?.edited || "#22c55e");
-        }
+        // إضافة اللون حسب الفني
+        let color = techColors[c.technicianName] || "#0f766e";
+        card.style.borderRight = `10px solid ${color}`;
 
         card.innerHTML = `
             <h3>${c.patientName}</h3>
             <p>رقم الملف: ${c.fileNumber}</p>
-
-            ${isVacation ? `<p style="color:#f97316;font-weight:bold;">⚠ الفني في إجازة</p>` : ""}
-
-            <p>نوع الحالة: ${c.caseType}</p>
             <p>الفني: ${c.technicianName}</p>
+            <p>نوع الحالة: ${c.caseType}</p>
+            <p style="font-size:12px;color:#64748b;">وقت الدخول: ${c.createdAt}</p>
 
-            <p style="font-size:11px;color:#64748b">وقت الدخول: ${new Date(c.createdAt).toLocaleString()}</p>
+            ${isVacation ? `<p style="color:#ea580c;font-weight:bold;">⚠ الفني في إجازة</p>` : ""}
 
-            <button class="btn-logout"
-                style="background:#163a43;margin-top:10px;width:100%;"
-                onclick="markAsEdited(${c.id})">
+            <button onclick="markAsEdited(${c.id})"
+                    class="btn-logout" style="background:#0f172a;margin-top:10px;width:100%;">
                 تعديل الحالة
             </button>
 
-            <button class="btn-logout"
-                style="background:#0f8f5e;margin-top:10px;width:100%;"
-                onclick="markAsReady(${c.id})">
+            <button onclick="markAsReady(${c.id})"
+                    class="btn-logout" style="background:#0f766e;margin-top:10px;width:100%;">
                 جاهزة للتسليم ✔
             </button>
         `;
@@ -177,52 +108,52 @@ function renderCases() {
 }
 
 
-/* ------------------------------------------------------
-   6) دالة تعديل الحالة (لون أخضر)
--------------------------------------------------------*/
+// ---------------------------------------------------------
+// دالة تعديل الحالة
+// ---------------------------------------------------------
 function markAsEdited(id) {
-    const index = cases.findIndex(c => c.id === id);
+    let index = cases.findIndex(c => c.id === id);
     if (index > -1) {
         cases[index].isEdited = true;
         localStorage.setItem("labxNewCases", JSON.stringify(cases));
+        alert("✔ تم إرسال الحالة كتعديل");
         renderCases();
-        alert("✔ تم تحديث الحالة وإرسالها إلى الفني.");
     }
 }
 
 
-/* ------------------------------------------------------
-   7) دالة تحديد الحالة كجاهزة للتسليم
--------------------------------------------------------*/
+// ---------------------------------------------------------
+// دالة جاهزية الحالة
+// ---------------------------------------------------------
 function markAsReady(id) {
-    const index = cases.findIndex(c => c.id === id);
+    let index = cases.findIndex(c => c.id === id);
     if (index > -1) {
         cases[index].status = "جاهزة";
         cases[index].readyTime = new Date().toLocaleString();
 
         localStorage.setItem("labxNewCases", JSON.stringify(cases));
+        alert("✔ الحالة أصبحت جاهزة للتسليم");
         renderCases();
-        alert("✔ تم وضع الحالة ضمن الحالات الجاهزة للتسليم!");
     }
 }
 
 
-/* ------------------------------------------------------
-   8) إذا الفني في إجازة → تظهر رسالة تحذير
--------------------------------------------------------*/
+// ---------------------------------------------------------
+// تنبيه الإجازات
+// ---------------------------------------------------------
 function checkVacation() {
-    const someoneInVacation = cases.some(c => vacationList.includes(c.technicianName));
-    if (someoneInVacation) {
+    if (vacList.length > 0) {
         document.getElementById("vacationAlert").style.display = "block";
     }
 }
 
 
-/* عرض كل شيء */
+// تشغيل الصفحة
 renderCases();
 checkVacation();
 
 </script>
+
 
 </body>
 </html>
