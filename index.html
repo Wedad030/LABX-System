@@ -6,44 +6,64 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 
-<body>
-  <div class="app">
+<body class="bg">
+  <div class="layout">
 
-    <!-- LOGIN PAGE -->
-    <section id="login">
-      <h1 class="logo">LABX</h1>
-      <p class="desc">نظام إدارة حالات معمل الأسنان</p>
-
-      <input type="text" id="user" placeholder="اسم المستخدم">
-      <input type="password" id="pass" placeholder="كلمة المرور">
-
-      <button onclick="login()">دخول</button>
-
-      <p id="err" class="err"></p>
-
-      <div class="hint">
-        <p>دخول المدير: admin / labx2026</p>
-        <p>الإحصائيات: stats / Wedad20</p>
-      </div>
-    </section>
-
-    <!-- DASHBOARD -->
-    <section id="dash" style="display:none;">
-      <div class="top">
-        <h2 id="welcome"></h2>
-        <button onclick="logout()" class="logout">تسجيل خروج</button>
+    <!-- رأس الصفحة -->
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.png" alt="LABX Dental" class="logo-img" />
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">Dental Lab Case Management</div>
+        </div>
       </div>
 
-      <p id="role" class="role"></p>
-
-      <div class="grid">
-        <div class="box"><h3>إضافة حالة</h3></div>
-        <div class="box"><h3>استلام حالة</h3></div>
-        <div class="box"><h3>لوحة الفني</h3></div>
-        <div class="box"><h3>الإحصائيات</h3></div>
+      <div class="top-header-left">
+        <div class="user-info">
+          <span class="hello">مرحبًا،</span>
+          <span id="userName" class="user-name">admin</span>
+        </div>
+        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
       </div>
+    </header>
 
-    </section>
+    <!-- صندوق المحتوى -->
+    <main class="main-card fade-in">
+      <p id="roleLabel" class="role-badge"></p>
+
+      <section class="tiles-grid slide-up">
+        <a href="add-case.html" class="tile">
+          <h3>إضافة حالة</h3>
+          <p>تسجيل حالة جديدة من العيادة مع جميع البيانات.</p>
+        </a>
+
+        <a href="receive-case.html" class="tile">
+          <h3>استلام حالة من العامل</h3>
+          <p>تأكيد استلام الحالة من RDC1 / RDC2 وتحديث حالتها.</p>
+        </a>
+
+        <a href="technician.html" class="tile">
+          <h3>لوحة الفني</h3>
+          <p>عرض الحالات تحت العمل والحالات الجاهزة لكل فني.</p>
+        </a>
+
+        <a href="ready-cases.html" class="tile">
+          <h3>الحالات الجاهزة / التوزيع</h3>
+          <p>إدارة الحالات الجاهزة وتوزيعها على RDC1 / RDC2 والصناديق.</p>
+        </a>
+
+        <a href="clinic-receive.html" class="tile">
+          <h3>استلام العيادة من المعمل</h3>
+          <p>مسح الـ QR وتأكيد خروج الحالة وتوقيع المساعدة.</p>
+        </a>
+
+        <a href="stats.html" class="tile">
+          <h3>الإحصائيات</h3>
+          <p>لوحة متابعة للحالات اليومية – الأسبوعية – الشهرية – السنوية.</p>
+        </a>
+      </section>
+    </main>
 
   </div>
 
