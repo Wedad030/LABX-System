@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LABX</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f7766, #0c5b4e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .splash-box {
+            text-align: center;
+            color: white;
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+
+        .splash-logo {
+            width: 120px;
+            margin-bottom: 18px;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
+            animation: pop 1.2s ease-out forwards;
+        }
+
+        .splash-title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: 0;
+            animation: fadeInText 1.2s ease-in forwards 0.7s;
+        }
+
+        .splash-sub {
+            margin-top: 8px;
+            font-size: 14px;
+            opacity: 0;
+            animation: fadeInText 1.2s ease-in forwards 1.2s;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInText {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="splash-box">
+    <img src="labx.jpeg" class="splash-logo">
+    <div class="splash-title">LABX Dental System</div>
+    <div class="splash-sub">Laboratory & Clinics Workflow</div>
+</div>
+
+<script>
+    setTimeout(() => {
+        window.location.href = "login.html";
+    }, 1800); // 1.8 ثانية ثم دخول تلقائي
+</script>
+
+</body>
+</html>
