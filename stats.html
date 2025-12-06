@@ -5,34 +5,42 @@
     <title>الإحصائيات - LABX</title>
     <link rel="stylesheet" href="style.css">
 
-    <!-- Chart.js -->
+    <!-- مكتبات الرسوم -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        .stats-box {
+        .stat-card {
             background: white;
             padding: 18px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px #00000015;
-            margin-bottom: 18px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
             text-align: center;
         }
-        .stats-number {
+        .stat-number {
             font-size: 32px;
             font-weight: bold;
             color: #0f766e;
         }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+            margin-top: 25px;
+        }
     </style>
 </head>
 
-
 <body class="bg">
+
 <script>
-// حماية النظام
+// حماية تسجيل الدخول
 if (localStorage.getItem("labxLogged") !== "true") {
     window.location.href = "login.html";
 }
 </script>
+
 <div class="layout">
 
     <!-- الهيدر -->
@@ -41,15 +49,12 @@ if (localStorage.getItem("labxLogged") !== "true") {
             <img src="labx.jpeg" class="logo-img">
             <div class="brand-text">
                 <div class="brand-title">LABX DENTAL</div>
-                <div class="brand-sub">الإحصائيات العامة</div>
+                <div class="brand-sub">Statistics</div>
             </div>
         </div>
 
         <div class="top-header-left">
-            <button onclick="window.location.href='index.html'"
-                    class="btn-logout" style="background:#0f766e;">
-                رجوع
-            </button>
+            <button onclick="window.location.href='index.html'" class="btn-logout">الرئيسية</button>
         </div>
     </header>
 
@@ -57,119 +62,184 @@ if (localStorage.getItem("labxLogged") !== "true") {
     <!-- المحتوى -->
     <main class="main-card fade-in">
 
-        <h2 style="text-align:center;margin-bottom:15px;">لوحة الإحصائيات</h2>
+        <h2 style="margin-bottom:20px;">📊 لوحة الإحصائيات الشاملة</h2>
 
-        <div class="tiles-grid">
+        <div class="stat-grid">
 
-            <div class="stats-box">
-                <h3>إجمالي الحالات</h3>
-                <div id="totalCases" class="stats-number">0</div>
+            <!-- حالات اليوم -->
+            <div class="stat-card">
+                <div class="stat-number" id="todayCount">0</div>
+                <div>حالات اليوم</div>
             </div>
 
-            <div class="stats-box">
-                <h3>تحت الإجراء</h3>
-                <div id="underProcess" class="stats-number">0</div>
+            <!-- حالات الأسبوع -->
+            <div class="stat-card">
+                <div class="stat-number" id="weekCount">0</div>
+                <div>حالات الأسبوع</div>
             </div>
 
-            <div class="stats-box">
-                <h3>جاهزة للتسليم</h3>
-                <div id="readyCases" class="stats-number">0</div>
+            <!-- حالات الشهر -->
+            <div class="stat-card">
+                <div class="stat-number" id="monthCount">0</div>
+                <div>حالات الشهر</div>
             </div>
 
-            <div class="stats-box">
-                <h3>تم التسليم للعيادة</h3>
-                <div id="clinicReceived" class="stats-number">0</div>
+            <!-- حالات السنة -->
+            <div class="stat-card">
+                <div class="stat-number" id="yearCount">0</div>
+                <div>حالات السنة</div>
             </div>
 
         </div>
 
 
-        <h3 style="margin-top:30px;">إحصائيات الأقسام</h3>
-        <canvas id="deptChart"></canvas>
+        <!-- رسم بياني 1 -->
+        <div class="chart-container">
+            <h3>توزيع الحالات حسب الحالة</h3>
+            <canvas id="statusChart"></canvas>
+        </div>
 
-        <h3 style="margin-top:40px;">إحصائيات الفنيين</h3>
-        <canvas id="techChart"></canvas>
+        <!-- رسم بياني 2 -->
+        <div class="chart-container">
+            <h3>إنتاجية الفنيين</h3>
+            <canvas id="techChart"></canvas>
+        </div>
 
     </main>
 
 </div>
 
 
-<script>
-// ----------------------------------------------------------
-// جلب الإعدادات
-// ----------------------------------------------------------
-let techList = JSON.parse(localStorage.getItem("techList") || "[]");
-let deptList = JSON.parse(localStorage.getItem("deptList") || "[]");
 
-// ----------------------------------------------------------
-// جلب الحالات
-// ----------------------------------------------------------
-let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
-
-document.getElementById("totalCases").innerText = cases.length;
-document.getElementById("underProcess").innerText = cases.filter(c => c.status === "تحت الإجراء").length;
-document.getElementById("readyCases").innerText = cases.filter(c => c.status === "جاهزة").length;
-document.getElementById("clinicReceived").innerText = cases.filter(c => c.status === "تم التسليم للعيادة").length;
+<!-- Firebase + تحليل البيانات -->
+<script type="module">
+import { getDocs, collection } 
+from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { db } from "./firebase.js";
 
 
-// ----------------------------------------------------------
-// 1) إحصائيات الأقسام (ديناميكية)
-// ----------------------------------------------------------
-let deptCount = {};
-deptList.forEach(d => deptCount[d] = 0);
+// -------------------------------
+// 1️⃣ جلب جميع الحالات من Firebase
+// -------------------------------
+async function loadStats() {
+    const snapshot = await getDocs(collection(db, "cases"));
+    const readySnap = await getDocs(collection(db, "readyCases"));
+    const archiveSnap = await getDocs(collection(db, "archive"));
 
-cases.forEach(c => {
-    if (deptCount[c.caseType] !== undefined) {
-        deptCount[c.caseType]++;
-    }
-});
+    const all = [
+        ...snapshot.docs.map(d => ({id:d.id, ...d.data()})),
+        ...readySnap.docs.map(d => ({id:d.id, ...d.data()})),
+        ...archiveSnap.docs.map(d => ({id:d.id, ...d.data()})),
+    ];
 
-let deptLabels = Object.keys(deptCount);
-let deptValues = Object.values(deptCount);
-
-new Chart(document.getElementById("deptChart"), {
-    type: 'bar',
-    data: {
-        labels: deptLabels,
-        datasets: [{
-            label: 'عدد الحالات',
-            data: deptValues,
-            backgroundColor: '#0f766e'
-        }]
-    },
-    options: { responsive: true }
-});
+    calculateStats(all);
+}
 
 
-// ----------------------------------------------------------
-// 2) إحصائيات الفنيين (ديناميكية)
-// ----------------------------------------------------------
-let techCount = {};
-techList.forEach(t => techCount[t.name] = 0);
+// -------------------------------
+// 2️⃣ حساب الإحصائيات الأساسية
+// -------------------------------
+function calculateStats(cases) {
+    const today = new Date().toDateString();
 
-cases.forEach(c => {
-    if (techCount[c.technicianName] !== undefined) {
+    let todayCount = 0;
+    let weekCount = 0;
+    let monthCount = 0;
+    let yearCount = 0;
+
+    let statusCount = {
+        "تحت الإجراء": 0,
+        "جاهزة": 0,
+        "تم التسليم للعيادة": 0
+    };
+
+    let techCount = {};
+
+    const now = new Date();
+
+    cases.forEach(c => {
+        let created = new Date(c.createdAt);
+
+        // حالات اليوم
+        if (created.toDateString() === today) todayCount++;
+
+        // حالات الأسبوع
+        const diffWeek = (now - created) / (1000 * 60 * 60 * 24);
+        if (diffWeek <= 7) weekCount++;
+
+        // حالات الشهر
+        if (created.getMonth() === now.getMonth()) monthCount++;
+
+        // حالات السنة
+        if (created.getFullYear() === now.getFullYear()) yearCount++;
+
+        // الإحصائيات حسب الحالة
+        if (statusCount[c.status] !== undefined) {
+            statusCount[c.status]++;
+        }
+
+        // إحصائيات الفنيين
+        if (techCount[c.technicianName] == null) {
+            techCount[c.technicianName] = 0;
+        }
         techCount[c.technicianName]++;
-    }
-});
+    });
 
-let techLabels = Object.keys(techCount);
-let techValues = Object.values(techCount);
-let techColors = techList.map(t => t.color || "#0f766e");
+    document.getElementById("todayCount").innerText = todayCount;
+    document.getElementById("weekCount").innerText = weekCount;
+    document.getElementById("monthCount").innerText = monthCount;
+    document.getElementById("yearCount").innerText = yearCount;
 
-new Chart(document.getElementById("techChart"), {
-    type: 'pie',
-    data: {
-        labels: techLabels,
-        datasets: [{
-            data: techValues,
-            backgroundColor: techColors
-        }]
-    },
-    options: { responsive: true }
-});
+    drawStatusChart(statusCount);
+    drawTechChart(techCount);
+}
 
+
+// -------------------------------
+// 3️⃣ رسم مخطط الحالات
+// -------------------------------
+function drawStatusChart(statusCount) {
+    const ctx = document.getElementById("statusChart");
+
+    new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: ["تحت الإجراء", "جاهزة", "تم التسليم"],
+            datasets: [{
+                data: [
+                    statusCount["تحت الإجراء"],
+                    statusCount["جاهزة"],
+                    statusCount["تم التسليم للعيادة"]
+                ],
+                backgroundColor: ["#0ea5e9", "#22c55e", "#f97316"]
+            }]
+        }
+    });
+}
+
+
+// -------------------------------
+// 4️⃣ رسم مخطط إنتاجية الفنيين
+// -------------------------------
+function drawTechChart(techCount) {
+    const ctx = document.getElementById("techChart");
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: Object.keys(techCount),
+            datasets: [{
+                label: "عدد الحالات",
+                data: Object.values(techCount),
+                backgroundColor: "#0f766e"
+            }]
+        }
+    });
+}
+
+
+// تشغيل
+loadStats();
 </script>
 
 </body>
