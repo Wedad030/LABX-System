@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>LABX System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- LOGIN PAGE -->
+    <section id="login">
+      <h1 class="logo">LABX</h1>
+      <p class="desc">نظام إدارة حالات معمل الأسنان</p>
+
+      <input type="text" id="user" placeholder="اسم المستخدم">
+      <input type="password" id="pass" placeholder="كلمة المرور">
+
+      <button onclick="login()">دخول</button>
+
+      <p id="err" class="err"></p>
+
+      <div class="hint">
+        <p>دخول المدير: admin / labx2026</p>
+        <p>الإحصائيات: stats / Wedad20</p>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dash" style="display:none;">
+      <div class="top">
+        <h2 id="welcome"></h2>
+        <button onclick="logout()" class="logout">تسجيل خروج</button>
+      </div>
+
+      <p id="role" class="role"></p>
+
+      <div class="grid">
+        <div class="box"><h3>إضافة حالة</h3></div>
+        <div class="box"><h3>استلام حالة</h3></div>
+        <div class="box"><h3>لوحة الفني</h3></div>
+        <div class="box"><h3>الإحصائيات</h3></div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
