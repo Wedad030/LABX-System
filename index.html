@@ -1,79 +1,144 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>LABX System</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <title>الرئيسية - LABX</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .home-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--green-main);
+        }
+
+        .home-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+
+        .home-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .tile-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--green-main);
+        }
+    </style>
 </head>
 
-<body class="bg">
-  <script>
-// حماية النظام
+<body class="page-enter">
+
+<script>
+// حماية تسجيل الدخول
 if (localStorage.getItem("labxLogged") !== "true") {
     window.location.href = "login.html";
 }
 </script>
-  <div class="layout">
 
-    <!-- رأس الصفحة -->
+<div class="layout">
+
+    <!-- 🔰 الهيدر -->
     <header class="top-header">
-      <div class="top-header-right">
-        <img src="logo.png" alt="LABX Dental" class="logo-img" />
-        <div class="brand-text">
-          <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">Dental Lab Case Management</div>
+        <div class="top-header-right">
+            <img src="labx.jpeg" class="logo-img">
+            <div>
+                <div class="brand-title">LABX Dental</div>
+                <div class="brand-sub">نظام إدارة المعمل</div>
+            </div>
         </div>
-      </div>
 
-      <div class="top-header-left">
-        <div class="user-info">
-          <span class="hello">مرحبًا،</span>
-          <span id="userName" class="user-name">admin</span>
+        <div class="top-header-left">
+            <button onclick="logout()" class="btn">تسجيل خروج</button>
         </div>
-        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
-      </div>
     </header>
 
-    <!-- صندوق المحتوى -->
-    <main class="main-card fade-in">
-      <p id="roleLabel" class="role-badge"></p>
+    <!-- 🎯 المحتوى الرئيسي -->
+    <main>
 
-      <section class="tiles-grid slide-up">
-        <a href="add-case.html" class="tile">
-          <h3>إضافة حالة</h3>
-          <p>تسجيل حالة جديدة من العيادة مع جميع البيانات.</p>
-        </a>
+        <div class="home-title fade-item">مرحبًا بك في نظام LABX</div>
+        <div class="home-sub fade-item">اختر أحد الأقسام التالية للبدء</div>
 
-        <a href="receive-case.html" class="tile">
-          <h3>استلام حالة من العامل</h3>
-          <p>تأكيد استلام الحالة من RDC1 / RDC2 وتحديث حالتها.</p>
-        </a>
+        <div class="home-grid">
 
-        <a href="technician.html" class="tile">
-          <h3>لوحة الفني</h3>
-          <p>عرض الحالات تحت العمل والحالات الجاهزة لكل فني.</p>
-        </a>
+            <!-- إضافة حالة -->
+            <div class="tile card" onclick="go('add-case.html')">
+                <div class="tile-icon">➕</div>
+                <div class="tile-title">إضافة حالة جديدة</div>
+                <div class="tile-desc">إدخال حالة من العيادة للمعمل</div>
+            </div>
 
-        <a href="ready-cases.html" class="tile">
-          <h3>الحالات الجاهزة / التوزيع</h3>
-          <p>إدارة الحالات الجاهزة وتوزيعها على RDC1 / RDC2 والصناديق.</p>
-        </a>
+            <!-- استلام حالة -->
+            <div class="tile card" onclick="go('receive-case.html')">
+                <div class="tile-icon">📥</div>
+                <div class="tile-title">استلام حالة من العامل</div>
+                <div class="tile-desc">تحويل الحالات بين RDC1 / RDC2</div>
+            </div>
 
-        <a href="clinic-receive.html" class="tile">
-          <h3>استلام العيادة من المعمل</h3>
-          <p>مسح الـ QR وتأكيد خروج الحالة وتوقيع المساعدة.</p>
-        </a>
+            <!-- لوحة الفني -->
+            <div class="tile card" onclick="go('technician.html')">
+                <div class="tile-icon">🛠️</div>
+                <div class="tile-title">لوحة الفني</div>
+                <div class="tile-desc">الحالات تحت الإجراء</div>
+            </div>
 
-        <a href="stats.html" class="tile">
-          <h3>الإحصائيات</h3>
-          <p>لوحة متابعة للحالات اليومية – الأسبوعية – الشهرية – السنوية.</p>
-        </a>
-      </section>
+            <!-- الحالات الجاهزة -->
+            <div class="tile card" onclick="go('ready-cases.html')">
+                <div class="tile-icon">📦</div>
+                <div class="tile-title">الحالات الجاهزة</div>
+                <div class="tile-desc">تجهيز للتسليم + QR</div>
+            </div>
+
+            <!-- استلام العيادة -->
+            <div class="tile card" onclick="go('clinic-receive.html')">
+                <div class="tile-icon">🏥</div>
+                <div class="tile-title">استلام العيادة</div>
+                <div class="tile-desc">QR + إدخال المساعدة</div>
+            </div>
+
+            <!-- الإحصائيات -->
+            <div class="tile card" onclick="go('stats.html')">
+                <div class="tile-icon">📊</div>
+                <div class="tile-title">الإحصائيات</div>
+                <div class="tile-desc">لوحة متابعة الإنتاجية</div>
+            </div>
+
+            <!-- الأرشيف -->
+            <div class="tile card" onclick="go('archive.html')">
+                <div class="tile-icon">🗄️</div>
+                <div class="tile-title">الأرشيف</div>
+                <div class="tile-desc">الحالات المسلّمة للعيادات</div>
+            </div>
+
+            <!-- الإعدادات -->
+            <div class="tile card" onclick="go('settings.html')">
+                <div class="tile-icon">⚙️</div>
+                <div class="tile-title">الإعدادات</div>
+                <div class="tile-desc">تعديل الفنيين + الإجازات</div>
+            </div>
+
+        </div>
+
     </main>
 
-  </div>
+</div>
 
-  <script src="app.js"></script>
+<script>
+function go(page) {
+    window.location.href = page;
+}
+
+function logout() {
+    localStorage.removeItem("labxLogged");
+    window.location.href = "login.html";
+}
+</script>
+
 </body>
 </html>
-
