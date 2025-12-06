@@ -2,165 +2,178 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>استلام الحالة من المعمل للعيادة - LABX</title>
+  <title>استلام الحالة - LABX</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- QR Scanner -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
   <style>
     canvas {
+      border: 1px solid #cbd5e1;
       background: #f1f5f9;
       border-radius: 12px;
-      border: 1px solid #cbd5e1;
       width: 100%;
       height: 200px;
+      margin-top: 10px;
     }
   </style>
 </head>
 
 <body class="bg">
-  <div class="layout">
 
-    <!-- الهيدر -->
-    <header class="top-header">
-      <div class="top-header-right">
-        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
-        <div class="brand-text">
-          <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">Clinic Receive</div>
-        </div>
+<div class="layout">
+
+  <!-- الهيدر -->
+  <header class="top-header">
+    <div class="top-header-right">
+      <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
+      <div class="brand-text">
+        <div class="brand-title">LABX DENTAL</div>
+        <div class="brand-sub">Clinic Receive</div>
       </div>
+    </div>
 
-      <div class="top-header-left">
-        <div class="user-info">
-          <span class="hello">مرحبًا،</span>
-          <span id="userName" class="user-name"></span>
-        </div>
-        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
-      </div>
-    </header>
+    <div class="top-header-left">
+      <button onclick="window.location.href='index.html'" class="btn-logout" style="background:#0f766e;">
+        رجوع
+      </button>
+    </div>
+  </header>
 
-    <!-- المحتوى -->
-    <main class="main-card fade-in">
+  <!-- المحتوى -->
+  <main class="main-card fade-in">
 
-      <p class="role-badge" id="roleLabel">استلام الحالة من المعمل للعيادة</p>
+    <h2 style="text-align:center;margin-bottom: 15px;">استلام الحالة في العيادة</h2>
 
-      <h2 style="margin-bottom:12px;">تفاصيل الاستلام</h2>
+    <h3>مسح QR</h3>
+    <div id="reader" style="width:280px;margin:auto;"></div>
 
-      <div class="tiles-grid">
+    <div id="caseInfo" style="display:none;margin-top:20px;">
+      <h3>بيانات الحالة</h3>
+      <p id="p_patient"></p>
+      <p id="p_file"></p>
+      <p id="p_tech"></p>
+    </div>
 
-        <div class="tile">
-          <label>رقم الملف</label>
-          <input type="text" id="fileNumber" placeholder="11000012345" required />
-        </div>
+    <label style="margin-top:20px;">اسم المساعدة:</label>
+    <input id="assistant" class="input" placeholder="اسم الممرضة">
 
-        <div class="tile">
-          <label>رقم العيادة</label>
-          <input type="text" id="clinicNumber" placeholder="مثال: 3" />
-        </div>
+    <label>رقم العيادة:</label>
+    <input id="clinic" class="input" placeholder="مثال: 4">
 
-        <div class="tile">
-          <label>اسم المساعدة</label>
-          <input type="text" id="assistantName" placeholder="اسم المستلم" />
-        </div>
+    <label style="margin-top:15px;">التوقيع:</label>
+    <canvas id="signPad"></canvas>
+    <button onclick="clearSign()" class="btn-logout" style="background:#dc2626;margin-top:6px;">
+      مسح التوقيع
+    </button>
 
-        <div class="tile">
-          <label>مسح QR (مؤقتًا إدخال يدوي)</label>
-          <input type="text" id="qrCode" placeholder="Scan Output" />
-        </div>
+    <button onclick="submitReceive()" class="btn-logout"
+            style="background:#16a34a;margin-top:20px;width:100%;">
+      تأكيد استلام الحالة ✔
+    </button>
 
-        <div class="tile" style="grid-column:1/-1;">
-          <label>التوقيع الإلكتروني</label>
-          <canvas id="signPad"></canvas>
-          <button onclick="clearSign()" class="btn-logout" style="background:#dc2626;margin-top:6px;">
-            مسح التوقيع
-          </button>
-        </div>
+  </main>
+</div>
 
-      </div>
 
-      <div style="margin-top:20px;">
-        <button id="saveBtn" class="btn-logout" style="background:#16a34a;width:100%;padding:12px;">
-          حفظ الاستلام
-        </button>
-      </div>
+<script>
+let selectedCase = null;
 
-      <div style="margin-top:16px;">
-        <a href="index.html" class="btn-logout" style="background:#0f766e;text-decoration:none;">
-          رجوع للواجهة الرئيسية
-        </a>
-      </div>
+// QR Scanner
+function onScanSuccess(decodedText) {
+  const allCases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+  const found = allCases.find(c => c.qrValue === decodedText);
 
-    </main>
+  if (found) {
+    selectedCase = found;
 
-  </div>
+    document.getElementById("caseInfo").style.display = "block";
+    document.getElementById("p_patient").innerText = "اسم المريض: " + found.patientName;
+    document.getElementById("p_file").innerText = "رقم الملف: " + found.fileNumber;
+    document.getElementById("p_tech").innerText = "الفني: " + found.technicianName;
+  } else {
+    alert("❌ لا توجد حالة بهذا QR");
+  }
+}
 
-  <script src="app.js"></script>
+let scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 }, false);
+scanner.render(onScanSuccess);
 
-  <script>
-    // التوقيع الإلكتروني
-    const canvas = document.getElementById("signPad");
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
 
-    canvas.addEventListener("mousedown", startDraw);
-    canvas.addEventListener("mouseup", endDraw);
-    canvas.addEventListener("mousemove", draw);
+// التوقيع
+const canvas = document.getElementById("signPad");
+const ctx = canvas.getContext("2d");
+let drawing = false;
 
-    canvas.addEventListener("touchstart", (e) => startDraw(e.touches[0]));
-    canvas.addEventListener("touchend", endDraw);
-    canvas.addEventListener("touchmove", (e) => draw(e.touches[0]));
+canvas.addEventListener("mousedown", start);
+canvas.addEventListener("mouseup", end);
+canvas.addEventListener("mousemove", draw);
 
-    function startDraw(e) {
-      drawing = true;
-      ctx.beginPath();
-      ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-    }
+canvas.addEventListener("touchstart", (e) => start(e.touches[0]));
+canvas.addEventListener("touchend", end);
+canvas.addEventListener("touchmove", (e) => draw(e.touches[0]));
 
-    function endDraw() {
-      drawing = false;
-    }
+function start(e) {
+  drawing = true;
+  ctx.beginPath();
+  ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+}
 
-    function draw(e) {
-      if (!drawing) return;
-      ctx.lineWidth = 3;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = "#0f766e";
-      ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-      ctx.stroke();
-    }
+function end() {
+  drawing = false;
+}
 
-    function clearSign() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+function draw(e) {
+  if (!drawing) return;
+  ctx.strokeStyle = "#0f766e";
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+  ctx.stroke();
+}
 
-    // حفظ بيانات الاستلام
-    document.getElementById("saveBtn").addEventListener("click", () => {
-      const fileNumber = document.getElementById("fileNumber").value.trim();
-      const clinicNumber = document.getElementById("clinicNumber").value.trim();
-      const assistantName = document.getElementById("assistantName").value.trim();
-      const qrCode = document.getElementById("qrCode").value.trim();
-      const signature = canvas.toDataURL();
+function clearSign() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
 
-      if (!fileNumber || !assistantName || !clinicNumber) {
-        alert("⚠️ الرجاء تعبئة جميع الحقول المطلوبة");
-        return;
-      }
 
-      const entry = {
-        id: Date.now(),
-        fileNumber,
-        clinicNumber,
-        assistantName,
-        qrCode,
-        signature,
-        receivedAt: new Date().toISOString()
-      };
+// حفظ الاستلام للعيادة
+function submitReceive() {
+  if (!selectedCase) {
+    alert("⚠ يرجى مسح QR أولاً");
+    return;
+  }
 
-      const stored = JSON.parse(localStorage.getItem("labxClinicReceive") || "[]");
-      stored.push(entry);
-      localStorage.setItem("labxClinicReceive", JSON.stringify(stored));
+  const assistant = document.getElementById("assistant").value.trim();
+  const clinic = document.getElementById("clinic").value.trim();
+  const signature = canvas.toDataURL();
 
-      alert("✔ تم حفظ استلام الحالة بنجاح");
-    });
-  </script>
+  if (!assistant || !clinic) {
+    alert("⚠ يرجى تعبئة جميع الحقول");
+    return;
+  }
+
+  let allCases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+  const index = allCases.findIndex(c => c.id === selectedCase.id);
+
+  if (index > -1) {
+    allCases[index].clinicReceive = {
+      assistant,
+      clinic,
+      signature,
+      time: new Date().toLocaleString()
+    };
+
+    allCases[index].status = "تم التسليم للعيادة";
+  }
+
+  localStorage.setItem("labxNewCases", JSON.stringify(allCases));
+
+  alert("✔ تم استلام الحالة بنجاح!");
+  window.location.href = "index.html";
+}
+</script>
 
 </body>
 </html>
