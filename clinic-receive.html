@@ -2,178 +2,232 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>استلام العيادة - LABX</title>
+    <title>استلام الحالة - LABX</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- مكتبة QR Reader -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
     <style>
-        .scan-box {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px #00000015;
-            margin-bottom: 20px;
-            text-align: center;
+        #preview {
+            width: 220px;
+            margin: 10px auto;
+            display: none;
         }
-        .case-box {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 3px 8px #00000022;
+        #dataBox {
+            background: #fff;
+            padding: 18px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.1);
             margin-top: 15px;
+            display: none;
+        }
+        .label {
+            font-weight: bold;
+            margin-top: 8px;
+            color: #0f766e;
         }
     </style>
 </head>
 
-
 <body class="bg">
-    <script>
-// حماية النظام
+
+<script>
+// حماية تسجيل الدخول
 if (localStorage.getItem("labxLogged") !== "true") {
     window.location.href = "login.html";
 }
 </script>
+
 <div class="layout">
 
-    <!-- الهيدر -->
+    <!-- هيدر -->
     <header class="top-header">
         <div class="top-header-right">
             <img src="labx.jpeg" class="logo-img">
             <div class="brand-text">
                 <div class="brand-title">LABX DENTAL</div>
-                <div class="brand-sub">استلام العيادة</div>
+                <div class="brand-sub">Clinic Receive</div>
             </div>
         </div>
 
         <div class="top-header-left">
-            <button onclick="window.location.href='index.html'"
-                    class="btn-logout" style="background:#0f766e;">
-                رجوع
-            </button>
+            <button onclick="window.location.href='index.html'" class="btn-logout">الرئيسية</button>
         </div>
     </header>
 
 
+    <!-- المحتوى -->
     <main class="main-card fade-in">
 
-        <h2 style="text-align:center;margin-bottom:20px;">مسح QR لاستلام الحالة</h2>
+        <h2 style="text-align:center;margin-bottom:15px;">📲 استلام الحالة من المعمل</h2>
 
-        <!-- صندوق السحب -->
-        <div class="scan-box">
-            <div id="reader" style="width:250px;margin:auto;"></div>
-        </div>
-
-        <!-- معلومات الحالة -->
-        <div id="caseData" class="case-box" style="display:none;"></div>
-
-        <!-- ازرار الإجراءات -->
-        <div id="actionButtons" style="display:none;margin-top:20px;">
-            <label>اسم المساعدة المستلمة:</label>
-            <input id="receivedBy" class="input" placeholder="اسم المساعدة">
-
-            <label>رقم العيادة:</label>
-            <input id="clinicNumber" class="input" placeholder="رقم العيادة">
-
-            <button onclick="confirmReceive()" 
-                    class="btn-logout"
-                    style="background:#0f766e;margin-top:10px;width:100%;">
-                ✔ تأكيد الاستلام
+        <!-- QR Scanner -->
+        <div style="text-align:center;">
+            <video id="preview"></video>
+            <button onclick="startScanner()" class="btn-logout" style="background:#0f766e;margin-bottom:10px;">
+                🎥 تشغيل ماسح الـ QR
             </button>
         </div>
+
+        <hr style="margin:15px 0; opacity:0.3;">
+
+        <!-- بحث يدوي -->
+        <div>
+            <label class="label">بحث برقم الملف:</label>
+            <input id="searchFile" class="input" placeholder="اكتب رقم الملف">
+            <button onclick="searchManual()" class="btn-logout" style="background:#0f766e;margin-top:8px;">
+                بحث
+            </button>
+        </div>
+
+        <!-- عرض بيانات الحالة -->
+        <div id="dataBox"></div>
 
     </main>
 
 </div>
 
+<!-- Firebase + QR Scanner -->
+<script type="module">
+import { db } from "./firebase.js";
+import { 
+    getDoc, doc, updateDoc, deleteDoc, setDoc, collection 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-<script>
-// ---------------------------------------------------------
-// جلب البيانات
-// ---------------------------------------------------------
-let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
-let techList = JSON.parse(localStorage.getItem("techList") || "[]");
+import QrScanner from "https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js";
 
-let techColors = {};
-techList.forEach(t => techColors[t.name] = t.color);
+const preview = document.getElementById("preview");
+const dataBox = document.getElementById("dataBox");
 
-let selectedCase = null;
+let currentCaseId = null;
 
 
-// ---------------------------------------------------------
-// QR Scan
-// ---------------------------------------------------------
-function onScanSuccess(decodedText) {
 
-    let found = cases.find(c => c.qrValue === decodedText);
+// ------------------------
+// 1️⃣ تشغيل QR Scanner
+// ------------------------
+window.startScanner = function() {
+    preview.style.display = "block";
 
-    if (!found) {
-        alert("❌ لم يتم العثور على حالة بهذا الـ QR");
-        return;
-    }
+    const scanner = new QrScanner(preview, result => {
+        scanner.stop();
+        preview.style.display = "none";
+        fetchCaseByQR(result.data);
+    });
 
-    selectedCase = found;
+    scanner.start();
+};
 
-    let color = techColors[found.technicianName] || "#0f766e";
 
-    document.getElementById("caseData").innerHTML = `
-        <h3 style="border-right:8px solid ${color};padding-right:10px;">${found.patientName}</h3>
-        <p>رقم الملف: ${found.fileNumber}</p>
-        <p>قسم الحالة: ${found.caseType}</p>
-        <p>الفني: ${found.technicianName}</p>
-        <p>تاريخ دخول المعمل: ${found.createdAt}</p>
-        ${found.readyTime ? `<p style="color:#16a34a;">جاهزة منذ: ${found.readyTime}</p>` : ""}
-    `;
 
-    document.getElementById("caseData").style.display = "block";
-    document.getElementById("actionButtons").style.display = "block";
+// ------------------------
+// 2️⃣ بحث يدوي برقم الملف
+// ------------------------
+window.searchManual = async function() {
+    const file = document.getElementById("searchFile").value.trim();
+    if (!file) return alert("❗ أدخلي رقم الملف");
+
+    fetchCaseByFile(file);
+};
+
+
+
+// ------------------------
+// 3️⃣ جلب حالة من Firebase بالـ QR
+// ------------------------
+async function fetchCaseByQR(qrValue) {
+    const col = collection(db, "readyCases");
+    const snapshot = await getDocs(col);
+
+    let found = null;
+
+    snapshot.forEach(docu => {
+        if (docu.data().qrValue == qrValue) {
+            found = { id: docu.id, ...docu.data() };
+        }
+    });
+
+    if (!found) return alert("❌ لم يتم العثور على حالة بهذا الـ QR");
+
+    showCase(found);
 }
 
 
-// QR Initialization
-let html5QrCode = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(devices => {
-    if (devices && devices.length) {
-        html5QrCode.start(
-            devices[0].id,
-            { fps: 10, qrbox: 200 },
-            onScanSuccess
-        );
-    }
-});
+
+// ------------------------
+// 4️⃣ جلب حالة من Firebase برقم الملف
+// ------------------------
+async function fetchCaseByFile(fileNumber) {
+    const col = collection(db, "readyCases");
+    const snapshot = await getDocs(col);
+
+    let match = null;
+
+    snapshot.forEach(docu => {
+        if (docu.data().fileNumber == fileNumber) {
+            match = { id: docu.id, ...docu.data() };
+        }
+    });
+
+    if (!match) return alert("❌ لا توجد حالة بهذا الرقم");
+
+    showCase(match);
+}
 
 
-// ---------------------------------------------------------
-// تأكيد استلام الحالة من العيادة
-// ---------------------------------------------------------
-function confirmReceive() {
 
-    if (!selectedCase) return alert("❌ لم يتم مسح أي QR");
+// ------------------------
+// 5️⃣ عرض بيانات الحالة
+// ------------------------
+function showCase(c) {
+    currentCaseId = c.id;
 
-    let receivedBy = document.getElementById("receivedBy").value.trim();
-    let clinicNo = document.getElementById("clinicNumber").value.trim();
+    dataBox.style.display = "block";
+    dataBox.innerHTML = `
+        <h3>${c.patientName}</h3>
+        <p>📁 رقم الملف: ${c.fileNumber}</p>
+        <p>🏥 العيادة: ${c.clinicNumber}</p>
+        <p>👨‍🔧 الفني: ${c.technicianName}</p>
 
-    if (!receivedBy || !clinicNo) {
-        alert("⚠ يرجى إدخال اسم المساعدة ورقم العيادة");
-        return;
-    }
+        <label class="label">اسم المساعدة المستلمة:</label>
+        <input id="assistantReceive" class="input">
 
-    let index = cases.findIndex(c => c.id === selectedCase.id);
-    if (index === -1) return;
+        <button onclick="confirmReceive()" class="btn-logout" 
+            style="background:#0f766e;margin-top:12px;width:100%;">
+            ✓ تأكيد استلام الحالة
+        </button>
+    `;
+}
 
-    cases[index].status = "تم التسليم للعيادة";
-    cases[index].receivedBy = receivedBy;
-    cases[index].clinicNo = clinicNo;
-    cases[index].receivedAt = new Date().toLocaleString();
 
-    localStorage.setItem("labxNewCases", JSON.stringify(cases));
+
+// ------------------------
+// 6️⃣ تأكيد استلام العيادة
+// ------------------------
+window.confirmReceive = async function() {
+    const assistant = document.getElementById("assistantReceive").value;
+
+    if (!assistant) return alert("❗ اكتب اسم المساعدة");
+
+    const readyRef = doc(db, "readyCases", currentCaseId);
+    const archiveRef = doc(db, "archive", currentCaseId);
+
+    const snap = await getDoc(readyRef);
+
+    if (!snap.exists()) return alert("❌ حدث خطأ.. الحالة غير موجودة");
+
+    // نقل إلى الأرشيف
+    await setDoc(archiveRef, {
+        ...snap.data(),
+        receivedAt: new Date().toLocaleString(),
+        receivedBy: assistant,
+        status: "تم التسليم للعيادة"
+    });
+
+    // حذف من الجاهز
+    await deleteDoc(readyRef);
 
     alert("✔ تم تسليم الحالة للعيادة بنجاح");
 
     window.location.href = "index.html";
-}
-
+};
 </script>
 
 </body>
