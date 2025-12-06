@@ -194,6 +194,50 @@ document.getElementById("caseForm").addEventListener("submit", async function(e)
 <!-- ... باقي الصفحة ... -->
 
 <script type="module" src="firebase.js"></script>
+    <script type="module">
+import { saveCaseToCloud } from "./firebase.js";
+
+document.getElementById("caseForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    // قراءة البيانات من الفورم
+    const patientName = document.getElementById("patientName").value;
+    const fileNumber = document.getElementById("fileNumber").value;
+    const doctorName = document.getElementById("doctorName").value;
+    const assistantName = document.getElementById("assistantName").value;
+    const clinicNumber = document.getElementById("clinicNumber").value;
+    const caseType = document.getElementById("caseType").value;
+    const technicianName = document.getElementById("technicianName").value;
+    const notes = document.getElementById("notes").value;
+
+    // إنشاء QR بسيط
+    const qrValue = `${fileNumber}-${Date.now()}`;
+
+    // تجهيز الحالة
+    const newCase = {
+        patientName,
+        fileNumber,
+        doctorName,
+        assistantName,
+        clinicNumber,
+        caseType,
+        technicianName,
+        notes,
+        qrValue,
+        status: "تحت الإجراء",
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        await saveCaseToCloud(newCase);
+        alert("✅ تم حفظ الحالة في النظام السحابي بنجاح");
+        window.location.href = "index.html";
+    } catch (err) {
+        alert("❌ حدث خطأ أثناء حفظ الحالة");
+        console.error(err);
+    }
+});
+</script>
 <script src="app.js"></script>
 
 </body>
