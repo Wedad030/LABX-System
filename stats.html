@@ -12,21 +12,19 @@
         .stats-box {
             background: white;
             padding: 18px;
-            border-radius: 14px;
-            box-shadow: 0 4px 10px #00000010;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px #00000015;
             margin-bottom: 18px;
             text-align: center;
         }
-
         .stats-number {
             font-size: 32px;
             font-weight: bold;
             color: #0f766e;
-            margin-top: 8px;
         }
     </style>
-
 </head>
+
 
 <body class="bg">
 
@@ -35,17 +33,16 @@
     <!-- الهيدر -->
     <header class="top-header">
         <div class="top-header-right">
-            <img src="labx.jpeg" class="logo-img" alt="LABX">
+            <img src="labx.jpeg" class="logo-img">
             <div class="brand-text">
                 <div class="brand-title">LABX DENTAL</div>
-                <div class="brand-sub">الإحصائيات</div>
+                <div class="brand-sub">الإحصائيات العامة</div>
             </div>
         </div>
 
         <div class="top-header-left">
-            <button onclick="window.location.href='index.html'" 
-                    class="btn-logout" 
-                    style="background:#0f766e;">
+            <button onclick="window.location.href='index.html'"
+                    class="btn-logout" style="background:#0f766e;">
                 رجوع
             </button>
         </div>
@@ -55,137 +52,119 @@
     <!-- المحتوى -->
     <main class="main-card fade-in">
 
-        <h2 style="text-align:center;margin-bottom:25px;">لوحة الإحصائيات العامة</h2>
+        <h2 style="text-align:center;margin-bottom:15px;">لوحة الإحصائيات</h2>
 
-        <!-- عدادات رئيسية -->
         <div class="tiles-grid">
 
             <div class="stats-box">
-                <h3>الحالات الكلية</h3>
+                <h3>إجمالي الحالات</h3>
                 <div id="totalCases" class="stats-number">0</div>
             </div>
 
             <div class="stats-box">
-                <h3>الحالات تحت الإجراء</h3>
+                <h3>تحت الإجراء</h3>
                 <div id="underProcess" class="stats-number">0</div>
             </div>
 
             <div class="stats-box">
-                <h3>الحالات الجاهزة</h3>
-                <div id="readyCount" class="stats-number">0</div>
+                <h3>جاهزة للتسليم</h3>
+                <div id="readyCases" class="stats-number">0</div>
             </div>
 
             <div class="stats-box">
-                <h3>الحالات المسلّمة للعيادة</h3>
+                <h3>تم التسليم للعيادة</h3>
                 <div id="clinicReceived" class="stats-number">0</div>
             </div>
 
         </div>
 
 
-        <!-- مخططات -->
-        <h3 style="margin-top:35px;">إحصائيات الأقسام</h3>
-        <canvas id="departmentChart" style="margin-top:15px;"></canvas>
+        <h3 style="margin-top:30px;">إحصائيات الأقسام</h3>
+        <canvas id="deptChart"></canvas>
 
-        <h3 style="margin-top:45px;">إحصائيات الفنيين</h3>
-        <canvas id="techChart" style="margin-top:15px;"></canvas>
+        <h3 style="margin-top:40px;">إحصائيات الفنيين</h3>
+        <canvas id="techChart"></canvas>
 
     </main>
+
 </div>
 
 
-
 <script>
-/* -------------------------------------------------------------
-   جلب الحالات من LocalStorage
---------------------------------------------------------------*/
+// ----------------------------------------------------------
+// جلب الإعدادات
+// ----------------------------------------------------------
+let techList = JSON.parse(localStorage.getItem("techList") || "[]");
+let deptList = JSON.parse(localStorage.getItem("deptList") || "[]");
+
+// ----------------------------------------------------------
+// جلب الحالات
+// ----------------------------------------------------------
 let cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
 
-/* -------------------------------------------------------------
-   1) حساب العدادات الرئيسية
---------------------------------------------------------------*/
 document.getElementById("totalCases").innerText = cases.length;
-
-document.getElementById("underProcess").innerText =
-    cases.filter(c => c.status === "تحت الإجراء").length;
-
-document.getElementById("readyCount").innerText =
-    cases.filter(c => c.status === "جاهزة").length;
-
-document.getElementById("clinicReceived").innerText =
-    cases.filter(c => c.status === "تم التسليم للعيادة").length;
+document.getElementById("underProcess").innerText = cases.filter(c => c.status === "تحت الإجراء").length;
+document.getElementById("readyCases").innerText = cases.filter(c => c.status === "جاهزة").length;
+document.getElementById("clinicReceived").innerText = cases.filter(c => c.status === "تم التسليم للعيادة").length;
 
 
-/* -------------------------------------------------------------
-   2) إحصائيات الأقسام
---------------------------------------------------------------*/
-const departments = {
-    "CAD/CAM": 0,
-    "PFM": 0,
-    "المتحرك": 0,
-    "المؤقت": 0,
-    "الصب": 0
-};
+// ----------------------------------------------------------
+// 1) إحصائيات الأقسام (ديناميكية)
+// ----------------------------------------------------------
+let deptCount = {};
+deptList.forEach(d => deptCount[d] = 0);
 
-// عد الحالات لكل قسم
 cases.forEach(c => {
-    if (departments[c.caseType] !== undefined) {
-        departments[c.caseType]++;
+    if (deptCount[c.caseType] !== undefined) {
+        deptCount[c.caseType]++;
     }
 });
 
-const depLabels = Object.keys(departments);
-const depValues = Object.values(departments);
+let deptLabels = Object.keys(deptCount);
+let deptValues = Object.values(deptCount);
 
-
-/* الرسم البياني للأقسام */
-new Chart(document.getElementById("departmentChart"), {
+new Chart(document.getElementById("deptChart"), {
     type: 'bar',
     data: {
-        labels: depLabels,
+        labels: deptLabels,
         datasets: [{
             label: 'عدد الحالات',
-            data: depValues,
-            backgroundColor: ['#0f766e', '#8b5cf6', '#22c55e', '#f59e0b', '#6b7280']
+            data: deptValues,
+            backgroundColor: '#0f766e'
         }]
     },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true }
-        }
+    options: { responsive: true }
+});
+
+
+// ----------------------------------------------------------
+// 2) إحصائيات الفنيين (ديناميكية)
+// ----------------------------------------------------------
+let techCount = {};
+techList.forEach(t => techCount[t.name] = 0);
+
+cases.forEach(c => {
+    if (techCount[c.technicianName] !== undefined) {
+        techCount[c.technicianName]++;
     }
 });
 
+let techLabels = Object.keys(techCount);
+let techValues = Object.values(techCount);
+let techColors = techList.map(t => t.color || "#0f766e");
 
-/* -------------------------------------------------------------
-   3) إحصائيات الفنيين
---------------------------------------------------------------*/
-let techCount = {};
-
-cases.forEach(c => {
-    if (!techCount[c.technicianName]) techCount[c.technicianName] = 0;
-    techCount[c.technicianName]++;
-});
-
-const techLabels = Object.keys(techCount);
-const techValues = Object.values(techCount);
-
-
-/* رسم الفنيين Pie chart */
 new Chart(document.getElementById("techChart"), {
     type: 'pie',
     data: {
         labels: techLabels,
         datasets: [{
             data: techValues,
-            backgroundColor: [
-                '#3b82f6','#10b981','#f43f5e','#8b5cf6','#f59e0b',
-                '#6b7280','#0f766e','#14b8a6','#f97316','#22c55e'
-            ]
+            backgroundColor: techColors
         }]
     },
+    options: { responsive: true }
 });
+
 </script>
 
 </body>
