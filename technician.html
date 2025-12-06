@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة الفني - LABX</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg">
+  <div class="layout">
+
+    <!-- الهيدر -->
+    <header class="top-header">
+      <div class="top-header-right">
+        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
+        <div class="brand-text">
+          <div class="brand-title">LABX DENTAL</div>
+          <div class="brand-sub">Technician Panel</div>
+        </div>
+      </div>
+
+      <div class="top-header-left">
+        <div class="user-info">
+          <span class="hello">مرحبًا،</span>
+          <span id="userName" class="user-name"></span>
+        </div>
+        <button id="logoutBtn" class="btn-logout">تسجيل خروج</button>
+      </div>
+    </header>
+
+    <!-- المحتوى -->
+    <main class="main-card fade-in">
+
+      <p class="role-badge" id="roleLabel">لوحة الفني — الحالات تحت الإجراء</p>
+
+      <h2 style="margin-bottom: 10px;">الحالات تحت العمل</h2>
+
+      <div id="casesContainer" class="tiles-grid slide-up">
+        <!-- يتم ملؤها من الجافاسكربت -->
+      </div>
+
+      <h2 style="margin-top: 22px; margin-bottom: 10px;">تنبيه الإجازة</h2>
+      <div id="vacationAlert" style="padding:12px;background:#fecaca;border-radius:12px;color:#7f1d1d;display:none;">
+        ⚠️ تنبيه: الفني في إجازة — لا يمكن استلام حالات جديدة.
+      </div>
+
+      <div style="margin-top: 20px;">
+        <a href="index.html" class="btn-logout" style="background:#0f766e;text-decoration:none;">رجوع للواجهة</a>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+
+  <script>
+    // قائمة الفنيين وألوانهم
+    const techColors = {
+      "قاسم": { main: "#3b82f6", edited: "#22c55e" },
+      "أحمد": { main: "#8b5cf6", edited: "#22c55e" },
+      "سعيد": { main: "#f59e0b", edited: "#22c55e" },
+      "فني آخر": { main: "#6b7280", edited: "#22c55e" }
+    };
+
+    // قائمة الفنيين في إجازة
+    const vacationList = ["سعيد"];  // اختاري الفني اللي بإجازة
+
+    // جلب الحالات الجديدة من localStorage
+    const cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
+
+    const container = document.getElementById("casesContainer");
+    const vacationAlert = document.getElementById("vacationAlert");
+
+    function renderCases() {
+      container.innerHTML = "";
+
+      cases.forEach(c => {
+        const isVacation = vacationList.includes(c.technicianName);
+
+        const card = document.createElement("div");
+        card.className = "tile";
+        card.style.borderRight = `8px solid ${techColors[c.technicianName]?.main || "#0f766e"}`;
+
+        if (c.isEdited) {
+          card.style.borderRight = `8px solid ${techColors[c.technicianName]?.edited}`;
+        }
+
+        card.innerHTML = `
+          <h3>${c.patientName}</h3>
+          <p>رقم الملف: ${c.fileNumber}</p>
+          <p>نوع الحالة: ${c.caseType}</p>
+          <p>الفني المسؤول: ${c.technicianName}</p>
+          <p style="font-size:11px;color:#64748b">وقت الدخول: ${new Date(c.createdAt).toLocaleString()}</p>
+
+          ${isVacation ? 
+            "<p style='color:#b91c1c;font-weight:bold;'>⚠️ الفني في إجازة</p>" 
+            : ""}
+
+          <button class="btn-logout" style="background:#16a34a;margin-top:10px;width:100%;" onclick="markAsEdited(${c.id})">
+            تحديث الحالة
+          </button>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // عند تحديث الحالة — تتحول الحافة إلى اللون الأخضر
+    function markAsEdited(id) {
+      const index = cases.findIndex(c => c.id === id);
+      if (index > -1) {
+        cases[index].isEdited = true;
+        localStorage.setItem("labxNewCases", JSON.stringify(cases));
+        renderCases();
+        alert("✔ تم تحديث الحالة وإرسالها للفني.");
+      }
+    }
+
+    // إظهار تنبيه الإجازة إذا الفني اللي سجل حالة موجود في الإجازة
+    function checkVacation() {
+      const someoneInVacation = cases.some(c => vacationList.includes(c.technicianName));
+      if (someoneInVacation) {
+        vacationAlert.style.display = "block";
+      }
+    }
+
+    renderCases();
+    checkVacation();
+  </script>
+
+</body>
+</html>
