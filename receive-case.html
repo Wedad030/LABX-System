@@ -1,106 +1,95 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>تفاصيل الحالة - LABX</title>
-  <link rel="stylesheet" href="style.css">
-
-  <style>
-    .details-box {
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-      margin-top: 20px;
-      line-height: 2;
-    }
-
-    .qr-img {
-      width: 140px;
-      margin: 15px auto;
-      display: block;
-      border-radius: 12px;
-    }
-
-    .section-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 20px;
-      color: #0f766e;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>استلام حالة من العامل</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg">
+    <div class="layout">
 
-  <div class="layout">
+        <!-- الهيدر -->
+        <header class="top-header">
+            <div class="top-header-right">
+                <img src="labx.jpeg" class="logo-img" alt="LABX Dental">
+                <div class="brand-text">
+                    <div class="brand-title">LABX DENTAL</div>
+                    <div class="brand-sub">استلام حالة — المعمل</div>
+                </div>
+            </div>
 
-    <!-- الهيدر -->
-    <header class="top-header">
-      <div class="top-header-right">
-        <img src="logo.jpeg" class="logo-img" alt="LABX Dental">
-        <div class="brand-text">
-          <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">Case Details</div>
-        </div>
-      </div>
+            <div class="top-header-left">
+                <div class="user-info">
+                    <span class="hello">👋 أهلاً </span>
+                    <span id="username" class="user-name"></span>
+                </div>
+            </div>
+        </header>
 
-      <div class="top-header-left">
-        <button onclick="window.location.href='index.html'" class="btn-logout" style="background:#0f766e;">
-          رجوع للواجهة
-        </button>
-      </div>
-    </header>
+        <!-- المحتوى -->
+        <main class="main-card fade-in">
 
-    <!-- الصفحة -->
-    <main class="main-card fade-in">
+            <h2>استلام حالة من العامل الفني</h2>
 
-      <h2 style="text-align:center;">تفاصيل الحالة</h2>
+            <label>اختر العامل:</label>
+            <select id="worker" class="input">
+                <option value="">— اختر —</option>
+                <option value="شهاب - RDC1">شهاب — RDC1</option>
+                <option value="أمين - RDC2">أمين — RDC2</option>
+            </select>
 
-      <div id="caseDetails" class="details-box">
-        تحميل البيانات...
-      </div>
+            <label style="margin-top:15px;">رقم الملف:</label>
+            <input id="fileNumber" type="text" class="input" placeholder="أدخل رقم ملف المريض">
 
-    </main>
-  </div>
+            <label style="margin-top:15px;">ملاحظة (اختياري):</label>
+            <textarea id="note" rows="3" class="input" placeholder="ملاحظات العامل..."></textarea>
 
-<script>
-  // جلب ID الحالة الذي تم حفظه عند مسح QR
-  const selectedCaseId = localStorage.getItem("selectedCaseId");
+            <button onclick="receiveCase()" class="btn-logout" 
+                style="background:#163a43;margin-top:20px;">تأكيد استلام الحالة</button>
 
-  const cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
-  const caseData = cases.find(c => c.id == selectedCaseId);
+            <a href="index.html" class="btn-logout" 
+                style="background:#f7666e;text-decoration:none;margin-top:10px;">رجوع للواجهة</a>
+        </main>
+    </div>
 
-  const box = document.getElementById("caseDetails");
+    <script>
+        // حفظ اسم المستخدم
+        document.getElementById("username").innerText = localStorage.getItem("labxUser") || "User";
 
-  if (!caseData) {
-    box.innerHTML = "<p style='color:#b91c1c;font-weight:bold;'>❌ لم يتم العثور على بيانات الحالة</p>";
-  } else {
-    box.innerHTML = `
-      <h3>${caseData.patientName}</h3>
-      <p><strong>رقم الملف:</strong> ${caseData.fileNumber}</p>
-      <p><strong>اسم الطبيب:</strong> ${caseData.doctorName}</p>
-      <p><strong>اسم المساعدة:</strong> ${caseData.assistantName}</p>
-      <p><strong>رقم العيادة:</strong> ${caseData.clinicNumber}</p>
-      <p><strong>نوع الحالة:</strong> ${caseData.caseType}</p>
-      <p><strong>الفني المنفذ:</strong> ${caseData.technicianName}</p>
-      <p><strong>ملاحظات:</strong> ${caseData.notes || "لا يوجد"}</p>
+        // دالة استلام الحالة
+        function receiveCase() {
+            const worker = document.getElementById("worker").value;
+            const file = document.getElementById("fileNumber").value.trim();
+            const note = document.getElementById("note").value.trim();
 
-      <div class="section-title">رمز الـ QR</div>
-      <img class="qr-img" src="${caseData.qrImage}" alt="QR">
+            if (!worker || !file) {
+                alert("⚠️ يرجى تعبئة كل الحقول الأساسية.");
+                return;
+            }
 
-      <p><strong>رقم الـ QR:</strong> ${caseData.qrValue}</p>
+            // سحب الحالات الحالية
+            let cases = JSON.parse(localStorage.getItem("labxNewCases")) || [];
 
-      <div class="section-title">تاريخ إنشاء الطلب</div>
-      <p>${new Date(caseData.createdAt).toLocaleString()}</p>
+            // تحديث الحالة داخل القائمة
+            const index = cases.findIndex(c => c.fileNumber === file);
 
-      <br>
-      <button onclick="window.print()" class="btn-logout" style="background:#0f766e;width:100%;">
-        طباعة الحالة
-      </button>
-    `;
-  }
-</script>
+            if (index === -1) {
+                alert("❌ لم يتم العثور على حالة بهذا الرقم.");
+                return;
+            }
+
+            cases[index].receivedByWorker = worker;
+            cases[index].receivedTime = new Date().toLocaleString();
+            cases[index].noteFromWorker = note;
+            cases[index].status = "وصلت للمعمل";
+
+            localStorage.setItem("labxNewCases", JSON.stringify(cases));
+
+            alert("✅ تم استلام الحالة من العامل بنجاح!");
+            location.reload();
+        }
+    </script>
 
 </body>
 </html>
