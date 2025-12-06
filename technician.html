@@ -55,16 +55,54 @@
 
   <script>
     // قائمة الفنيين وألوانهم
-    const techColors = {
-      "قاسم": { main: "#3b82f6", edited: "#22c55e" },
-      "أحمد": { main: "#8b5cf6", edited: "#22c55e" },
-      "سعيد": { main: "#f59e0b", edited: "#22c55e" },
-      "فني آخر": { main: "#6b7280", edited: "#22c55e" }
-    };
+  // قائمة الفنيين وألوانهم حسب القسم
 
-    // قائمة الفنيين في إجازة
-    const vacationList = ["سعيد"];  // اختاري الفني اللي بإجازة
+const techColors = {
+  // قسم الكاد كام
+  "قاسم عسيري":      { main: "#3b82f6", edited: "#22c55e" },
+  "أحمد كوشان":      { main: "#3b82f6", edited: "#22c55e" },
+  "عبدالله الرشيد":  { main: "#3b82f6", edited: "#22c55e" },
+  "عبدالله الشهراني":{ main: "#3b82f6", edited: "#22c55e" },
+  "أحمد القحطاني":   { main: "#3b82f6", edited: "#22c55e" },
+  "يحيى عسيري":      { main: "#3b82f6", edited: "#22c55e" },
 
+  // قسم الـ PFM
+  "سلطان الاحمري":   { main: "#8b5cf6", edited: "#22c55e" },
+  "أيمن الشهري":     { main: "#8b5cf6", edited: "#22c55e" },
+  "فيصل الوادعي":    { main: "#8b5cf6", edited: "#22c55e" },
+
+  // قسم الأوثو
+  "تركي الشهري":     { main: "#14b8a6", edited: "#22c55e" },
+  "وليد الشهري":     { main: "#14b8a6", edited: "#22c55e" },
+  "أسامة عسيري":     { main: "#14b8a6", edited: "#22c55e" },
+
+  // قسم المتحرك
+  "رشيد الكثيري":    { main: "#22c55e", edited: "#84cc16" },
+  "أحمد الصخري":     { main: "#22c55e", edited: "#84cc16" },
+  "عبداللطيف عسيري":{ main: "#22c55e", edited: "#84cc16" },
+  "محمد الشرفان":    { main: "#22c55e", edited: "#84cc16" },
+  "الاء":             { main: "#22c55e", edited: "#84cc16" },
+  "هيام":            { main: "#22c55e", edited: "#84cc16" },
+  "محمد الغامدي":    { main: "#22c55e", edited: "#84cc16" },
+  "منصور العويرضي":  { main: "#22c55e", edited: "#84cc16" },
+  "عبدالله الغامدي": { main: "#22c55e", edited: "#84cc16" },
+
+  // قسم المؤقت
+  "احمد الشبل":      { main: "#f59e0b", edited: "#22c55e" },
+  "وليد السويري":    { main: "#f59e0b", edited: "#22c55e" },
+  "فهد العتيبي":     { main: "#f59e0b", edited: "#22c55e" },
+  "عبدالله العود":   { main: "#f59e0b", edited: "#22c55e" },
+
+  // قسم الصب
+  "فهد الخميس":      { main: "#6b7280", edited: "#22c55e" }
+};
+
+// قائمة الفنيين في إجازة (لون برتقالي في التنبيه)
+const vacationList = [
+  "تركي الشهري",
+  "سلطان الاحمري",
+  "يحيى عسيري"
+];
     // جلب الحالات الجديدة من localStorage
     const cases = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
 
@@ -86,8 +124,13 @@
         }
 
         card.innerHTML = `
-          <h3>${c.patientName}</h3>
-          <p>رقم الملف: ${c.fileNumber}</p>
+  <h3>${c.patientName}</h3>
+  <p>رقم الملف: ${c.fileNumber}</p>
+
+  ${isVacation ? 
+    "<p style='color:#f97316;font-weight:bold;'>⚠️ الفني في إجازة</p>" 
+  : ""}
+`;
           <p>نوع الحالة: ${c.caseType}</p>
           <p>الفني المسؤول: ${c.technicianName}</p>
           <p style="font-size:11px;color:#64748b">وقت الدخول: ${new Date(c.createdAt).toLocaleString()}</p>
