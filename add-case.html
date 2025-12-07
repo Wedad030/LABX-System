@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>إضافة حالة - LABX System</title>
   <link rel="stylesheet" href="style.css" />
 
@@ -47,8 +47,6 @@
       margin-top:15px;
     }
 
-    .btn:hover { opacity:0.9; }
-
     .alert-red {
       background:#fee2e2;
       color:#b91c1c;
@@ -58,8 +56,6 @@
       display:none;
       margin-bottom:10px;
     }
-
-    .orange { color:#b45309; font-weight:bold; }
 
     #qrPreview { text-align:center; margin-top:15px; }
   </style>
@@ -111,7 +107,7 @@
     <label>الفني:</label>
     <select id="technician" required></select>
 
-    <label>الملاحظات:</label>
+    <label>ملاحظات:</label>
     <textarea id="notes"></textarea>
 
     <label>رقم توزيع الحالة:</label>
@@ -125,16 +121,10 @@
 </div>
 
 <script type="module">
-
   import { saveCaseToCloud } from "./firebase.js";
 
-  // ---------------------------
-  // 1) الفنيين حسب الأقسام
-  // ---------------------------
   const techniciansByDept = {
-    cadcam: [
-      "قاسم عسيري","أحمد كوشان","عبدالله الرشيد","عبدالله الشهراني","أحمد القحطاني","يحيى عسيري"
-    ],
+    cadcam: ["قاسم عسيري","أحمد كوشان","عبدالله الرشيد","عبدالله الشهراني","أحمد القحطاني","يحيى عسيري"],
     pfm: ["سلطان الاحمري","أيمن الشهري","فيصل الوادعي"],
     ortho: ["تركي الشهري","وليد الشهري","أسامة عسيري"],
     removable: ["رشيد الكثيري","أحمد الصخري","عبداللطيف عسيري","محمد الشرفان","الاء","هيام","محمد الغامدي","منصور العويرضي","عبدالله الغامدي"],
@@ -142,16 +132,12 @@
     casting: ["فهد الخميس"]
   };
 
-  // الفنيين في الإجازة
   const vacationList = ["تركي الشهري","سلطان الاحمري","يحيى عسيري"];
 
   const deptSelect = document.getElementById("department");
   const techSelect = document.getElementById("technician");
   const rejectBox = document.getElementById("rejectBox");
 
-  // ---------------------------
-  // 2) تحميل الفنيين تلقائياً حسب القسم
-  // ---------------------------
   deptSelect.addEventListener("change", () => {
     const dept = deptSelect.value;
     techSelect.innerHTML = "";
@@ -166,24 +152,18 @@
       if (vacationList.includes(t)) {
         opt.disabled = true;
         opt.textContent += " (إجازة)";
-        opt.style.color = "#b45309";
+        opt.style.color = "orange";
       }
 
       techSelect.appendChild(opt);
     });
   });
 
-  // ---------------------------
-  // 3) نوع الحالة → إذا تعديل = مرفوضة
-  // ---------------------------
   document.getElementById("caseMainType").addEventListener("change", () => {
     const type = document.getElementById("caseMainType").value;
     rejectBox.style.display = (type === "adjust") ? "block" : "none";
   });
 
-  // ---------------------------
-  // 4) توليد رقم توزيع + QR
-  // ---------------------------
   function generateCaseNumber() {
     const num = "LABX-" + Date.now();
     document.getElementById("caseNumber").value = num;
@@ -201,9 +181,6 @@
 
   generateCaseNumber();
 
-  // ---------------------------
-  // 5) حفظ الحالة في Firebase
-  // ---------------------------
   document.getElementById("caseForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -233,7 +210,6 @@
       Dept: ${data.department}
       Tech: ${data.technician}
     `);
-
   });
 
 </script>
