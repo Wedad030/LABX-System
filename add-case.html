@@ -1,233 +1,304 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>إضافة حالة - LABX Dental</title>
-<style>
-body { font-family: Arial; background:#f4f4f4; padding:20px; }
-.container { background:white; padding:20px; border-radius:10px; max-width:600px; margin:auto; }
-label { font-weight:bold; margin-top:10px; display:block; }
-input, select, textarea {
-    width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;
-    margin-top:5px; font-size:16px;
-}
-button {
-    width:100%; padding:14px; background:#0b6623;
-    color:white; border:none; border-radius:6px;
-    margin-top:20px; cursor:pointer; font-size:18px;
-}
-#rejectAlert {
-    display:none; background:#ffdddd; color:#b30000;
-    padding:12px; border-left:6px solid #b30000;
-    border-radius:6px; margin-top:15px; font-weight:bold;
-}
-#resultCard {
-    display:none; background:white; padding:20px; margin-top:20px; border-radius:10px;
-}
-.qr-box { text-align:center; margin-top:15px; }
-</style>
+    <meta charset="UTF-8" />
+    <title>إضافة حالة - LABX Dental</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        h2 {
+            margin-top: 0;
+            font-weight: bold;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-size: 15px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background: #0b6623;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 17px;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #rejectAlert {
+            display: none;
+            background: #fff0f0;
+            color: #b00000;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border-right: 5px solid #b00000;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        #resultCard {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        #resultCard h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        #resultText {
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+        .qr-box {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
-<h2>إضافة حالة جديدة</h2>
+    <h2>إضافة حالة جديدة</h2>
 
-<label>اسم المريض:</label>
-<input id="patientName" type="text">
+    <label>اسم المريض:</label>
+    <input id="patientName" type="text" />
 
-<label>رقم الملف:</label>
-<input id="fileNumber" type="number">
+    <label>رقم الملف:</label>
+    <input id="fileNumber" type="number" />
 
-<label>اسم الطبيب:</label>
-<input id="doctor" type="text">
+    <label>اسم الطبيب:</label>
+    <input id="doctor" type="text" />
 
-<label>اسم المساعد:</label>
-<input id="assistant" type="text">
+    <label>اسم المساعدة:</label>
+    <input id="assistant" type="text" />
 
-<label>رقم العيادة:</label>
-<input id="clinic" type="number">
+    <label>رقم العيادة:</label>
+    <input id="clinic" type="number" />
 
-<label>نوع الحالة:</label>
-<select id="caseType">
-    <option value="">اختر الحالة</option>
-    <option>جديدة</option>
-    <option>تعديل</option>
-    <option>RPD 3 teeth or less</option>
-    <option>TM 3 teeth or less</option>
-    <option>RPD ثلاث اسنان او اقل</option>
-    <option>TM ثلاث اسنان او اقل</option>
-</select>
+    <label>نوع الحالة:</label>
+    <select id="caseType">
+        <option value="">اختر نوع الحالة</option>
+        <option value="new">حالة جديدة</option>
+        <option value="adjust">تعديل / إعادة</option>
+        <option value="RPD 3 teeth or less">RPD 3 teeth or less</option>
+        <option value="TM 3 teeth or less">TM 3 teeth or less</option>
+        <option value="RPD ثلاث اسنان او اقل">RPD ثلاث اسنان او اقل</option>
+        <option value="TM ثلاث اسنان او اقل">TM ثلاث اسنان او اقل</option>
+    </select>
 
-<label>القسم:</label>
-<select id="department">
-    <option value="">اختر القسم</option>
-    <option value="cad">قسم الكاد كام</option>
-    <option value="pfm">قسم الـ PFM</option>
-    <option value="ortho">قسم الأوثور</option>
-    <option value="removable">قسم المتحرك</option>
-    <option value="temp">قسم المؤقت</option>
-    <option value="casting">قسم الصب</option>
-</select>
+    <label>القسم:</label>
+    <select id="department">
+        <option value="">اختر القسم</option>
+        <option value="cad">قسم الكاد كام</option>
+        <option value="pfm">قسم PFM</option>
+        <option value="ortho">قسم الأوثو</option>
+        <option value="removable">قسم المتحرك</option>
+        <option value="temp">قسم المؤقت</option>
+        <option value="casting">قسم الكاستنغ / الصب</option>
+    </select>
 
-<label>الفني المسؤول:</label>
-<select id="technician"></select>
+    <label>الفني المسؤول:</label>
+    <select id="technician">
+        <option value="">اختر الفني</option>
+    </select>
 
-<div id="rejectAlert">⚠️ هذه الحالة مرفوضة من قبل المعمل ولا يمكن قبولها</div>
+    <div id="rejectAlert">⚠️ هذه حالة مرفوضة من قبل المعمل ولا يمكن قبولها.</div>
 
-<label>ملاحظات:</label>
-<textarea id="notes" rows="3"></textarea>
+    <label>ملاحظات:</label>
+    <textarea id="notes" rows="3"></textarea>
 
-<button onclick="saveCase()">حفظ الحالة</button>
+    <button onclick="saveCase()">حفظ الحالة</button>
 </div>
 
 <div id="resultCard">
-<h3>تم حفظ الحالة بنجاح</h3>
-<p id="resultText"></p>
-<div class="qr-box"><canvas id="qrCode"></canvas></div>
+    <h3>تم حفظ الحالة بنجاح ✅</h3>
+    <p id="resultText"></p>
+    <div class="qr-box">
+        <canvas id="qrcode"></canvas>
+    </div>
 </div>
 
-    // الفنيين حسب الأقسام
+<!-- مكتبة QR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+<script>
+/* ===============================
+   قائمة الفنيين لكل قسم + الإجازات
+   =============================== */
 const technicians = {
     cad: [
-        {name:"قاسم عسيري", off:false},
-        {name:"أحمد كوشان", off:false},
-        {name:"عبدالله الرشيد", off:false},
-        {name:"عبدالله الشهراني", off:false},
-        {name:"أحمد القحطاني", off:false},
-        {name:"يحيى عسيري", off:true} // إجازة
+        { name: "قاسم عسيري", off: false },
+        { name: "أحمد كوشان", off: false },
+        { name: "عبدالله الرشيد", off: false },
+        { name: "عبدالله الشهراني", off: false },
+        { name: "أحمد القحطاني", off: false },
+        { name: "يحيى عسيري", off: true }   // إجازة
     ],
     pfm: [
-        {name:"سلطان الأحمري", off:true}, // إجازة
-        {name:"أيمن الشهري", off:false},
-        {name:"فيصل الوادعي", off:false}
+        { name: "سلطان الأحمري", off: true }, // إجازة
+        { name: "أيمن الشهري", off: false },
+        { name: "فيصل الوادعي", off: false }
     ],
     ortho: [
-        {name:"تركي الشهري", off:true}, // إجازة
-        {name:"وليد الشهري", off:false},
-        {name:"أسامة عسيري", off:false}
+        { name: "تركي الشهري", off: true },   // إجازة
+        { name: "وليد الشهري", off: false },
+        { name: "أسامة عسيري", off: false }
     ],
     removable: [
-        {name:"رشيد الكثيري", off:false},
-        {name:"أحمد الصخري", off:false},
-        {name:"عبداللطيف عسيري", off:false},
-        {name:"محمد الشرفان", off:false},
-        {name:"الاء", off:false},
-        {name:"هيام", off:false},
-        {name:"محمد الغامدي", off:false},
-        {name:"منصور العويرضي", off:false}
+        { name: "رشيد الكثيري", off: false },
+        { name: "أحمد الصخري", off: false },
+        { name: "عبداللطيف عسيري", off: false },
+        { name: "محمد الشرفان", off: false },
+        { name: "الاء", off: false },
+        { name: "هيام", off: false },
+        { name: "محمد الغامدي", off: false },
+        { name: "منصور العويرضي", off: false },
+        { name: "عبدالله الغامدي", off: false }
     ],
     temp: [
-        {name:"أحمد الشبل", off:false},
-        {name:"وليد السويري", off:false},
-        {name:"فهد العتيبي", off:false},
-        {name:"عبدالله العود", off:false}
+        { name: "أحمد الشبل", off: false },
+        { name: "وليد السويري", off: false },
+        { name: "فهد العتيبي", off: false },
+        { name: "عبدالله العود", off: false }
     ],
     casting: [
-        {name:"فهد الخميس", off:false}
+        { name: "فهد الخميس", off: false }
     ]
 };
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-<script>document.getElementById("caseType").addEventListener("change", function () {
-    let type = this.value.trim();
 
-    let rejectedCases = [
-        "RPD 3 teeth or less",
-        "TM 3 teeth or less",
-        "RPD ثلاث اسنان او اقل",
-        "TM ثلاث اسنان او اقل"
-    ];
+// الحقول
+const caseTypeSelect   = document.getElementById("caseType");
+const deptSelect       = document.getElementById("department");
+const techSelect       = document.getElementById("technician");
+const rejectAlert      = document.getElementById("rejectAlert");
+const resultCard       = document.getElementById("resultCard");
+const resultText       = document.getElementById("resultText");
 
-    document.getElementById("rejectAlert").style.display =
-        document.getElementById("caseType").addEventListener("change", function () {
-    let type = this.value.trim();
+// أنواع الحالات المرفوضة
+const rejectedCasesList = [
+    "RPD 3 teeth or less",
+    "TM 3 teeth or less",
+    "RPD ثلاث اسنان او اقل",
+    "TM ثلاث اسنان او اقل"
+];
 
-    let rejectedCases = [
-        "RPD 3 teeth or less",
-        "TM 3 teeth or less",
-        "RPD ثلاث اسنان او اقل",
-        "TM ثلاث اسنان او اقل"
-    ];
-
-    document.getElementById("rejectAlert").style.display =
-        rejectedCases.includes(type) ? "block" : "none";
+/* ===================
+   تنبيه الحالات المرفوضة
+   =================== */
+caseTypeSelect.addEventListener("change", function () {
+    const type = this.value.trim();
+    rejectAlert.style.display = rejectedCasesList.includes(type) ? "block" : "none";
 });
-document.getElementById("department").addEventListener("change", function () {
-    let dep = this.value;
-    let techSelect = document.getElementById("technician");
 
-    techSelect.innerHTML = "";
+/* ===================
+   تعبئة الفنيين حسب القسم
+   =================== */
+deptSelect.addEventListener("change", function () {
+    const dep = this.value;
+    techSelect.innerHTML = '<option value="">اختر الفني</option>';
 
-    if (!technicians[dep]) return;
+    const list = technicians[dep];
+    if (!list) return;
 
-    technicians[dep].forEach(tech => {
-        let option = document.createElement("option");
-        option.value = tech.name;
-        option.textContent = tech.off ? tech.name + " (إجازة)" : tech.name;
-
-        if (tech.off) option.style.color = "orange"; 
-        else techSelect.appendChild(option);
+    list.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.name;
+        opt.textContent = t.off ? `${t.name} (إجازة)` : t.name;
+        if (t.off) opt.style.color = "orange";
+        techSelect.appendChild(opt);
     });
-});    
-       function saveCase() {
+});
 
-    // رفض الحالات المرفوضة
-    let type = document.getElementById("caseType").value.trim();
-    let rejectedCases = [
-        "RPD 3 teeth or less",
-        "TM 3 teeth or less",
-        "RPD ثلاث اسنان او اقل",
-        "TM ثلاث اسنان او اقل"
-    ];
+/* ===================
+   حفظ الحالة + إنشاء QR
+   =================== */
+function saveCase() {
+    const name  = document.getElementById("patientName").value.trim();
+    const file  = document.getElementById("fileNumber").value.trim();
+    const doctor= document.getElementById("doctor").value.trim();
+    const assist= document.getElementById("assistant").value.trim();
+    const clinic= document.getElementById("clinic").value.trim();
+    const type  = caseTypeSelect.value.trim();
+    const dep   = deptSelect.value.trim();
+    const tech  = techSelect.value.trim();
+    const notes = document.getElementById("notes").value.trim();
 
-    if (rejectedCases.includes(type)) {
-        alert("❌ لا يمكن حفظ هذه الحالة لأنها مرفوضة من قبل المعمل");
+    // تحقق بسيط
+    if (!name || !file || !doctor || !assist || !clinic || !type || !dep || !tech) {
+        alert("فضلاً عبّي جميع الحقول الأساسية قبل الحفظ.");
         return;
     }
 
-    // بيانات الإدخال
-    let name = document.getElementById("patientName").value;
-    let file = document.getElementById("fileNumber").value;
-    let doctor = document.getElementById("doctor").value;
-    let assistant = document.getElementById("assistant").value;
-    let clinic = document.getElementById("clinic").value;
-    let tech = document.getElementById("technician").value;
+    // إيقاف الحفظ إذا الحالة مرفوضة
+    if (rejectedCasesList.includes(type)) {
+        alert("❌ هذه حالة مرفوضة من قبل المعمل ولا يمكن تسجيلها.");
+        return;
+    }
 
-    let caseNumber = Math.floor(100000 + Math.random() * 900000); // رقم توزيع 6 أرقام
-    let time = new Date().toLocaleTimeString("en-US");
-    let date = new Date().toLocaleDateString("en-US");
+    // رقم توزيع عشوائي من 6 أرقام
+    const caseNumber = Math.floor(100000 + Math.random() * 900000);
+    const now        = new Date();
+    const time       = now.toLocaleTimeString("en-US");
+    const date       = now.toLocaleDateString("en-US");
 
-    // عرض النتيجة
-    document.getElementById("resultText").innerHTML =
-        document.getElementById("resultText").innerHTML =
-    `اسم المريض: ${name}<br>
-     رقم الملف: ${file}<br>
-     رقم التوزيع: ${caseNumber}<br>
-     اسم الفني: ${tech}<br>
-     التاريخ: ${date} / ${time}`;
-        // 1) رابط صفحة تفاصيل الحالة
-let qrLink = `https://wedad030.github.io/LABX-System/case-details.html?id=${caseNumber}`;
-
-// 2) إنشاء QR فعلي
-let qr = new QRious({
-    element: document.getElementById("qrcode"),
-    value: qrLink,
-    size: 200
-});
-
-// 3) إظهار بطاقة النتيجة
-document.getElementById("resultCard").style.display = "block";
+    // نص النتيجة
+    resultText.innerHTML =
         `اسم المريض: ${name}<br>
          رقم الملف: ${file}<br>
          رقم التوزيع: ${caseNumber}<br>
+         القسم: ${dep}<br>
          الفني المسؤول: ${tech}<br>
-         التاريخ: ${date} / ${time}`;
+         التاريخ والوقت: ${date} / ${time}<br>
+         ملاحظات: ${notes || "لا يوجد"}`;
 
- 
+    // إنشاء رابط تفاصيل الحالة (لاحقاً ممكن نربطه بصفحة التفاصيل)
+    const qrLink = `https://wedad030.github.io/LABX-System/case-details.html?id=${caseNumber}`;
 
-    document.getElementById("resultCard").style.display = "block";
+    // مسح أي QR قديم
+    const qrCanvas = document.getElementById("qrcode");
+    const context = qrCanvas.getContext && qrCanvas.getContext("2d");
+    if (context) {
+        context.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+    }
+
+    // إنشاء QR جديد
+    new QRious({
+        element: qrCanvas,
+        value: qrLink,
+        size: 200
+    });
+
+    // إظهار الكرت
+    resultCard.style.display = "block";
 }
 </script>
 </body>
-</html> 
-        rejectedCases.includes(type) ? "block" : "none";
-});
+</html>
