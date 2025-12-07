@@ -145,8 +145,75 @@
         <canvas id="qrcode"></canvas>
     </div>
 </div>
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-<!-- مكتبة QR -->
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyAEZP8xCDv0jdrZ7snaj0FzC3sLPGnbro",
+    authDomain: "labx-system.firebaseapp.com",
+    databaseURL: "https://labx-system-default-rtdb.firebaseio.com",
+    projectId: "labx-system",
+    storageBucket: "labx-system.appspot.com",
+    messagingSenderId: "777413398764",
+    appId: "1:777413398764:web:d8bf24d18821f184a015c9"
+};
+
+// تشغيل Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+    function saveCase() {
+    let name = document.getElementById("patientName").value.trim();
+    let file = document.getElementById("fileNumber").value.trim();
+    let doctor = document.getElementById("doctor").value.trim();
+    let assistant = document.getElementById("assistant").value.trim();
+    let clinic = document.getElementById("clinic").value.trim();
+    let caseType = document.getElementById("caseType").value.trim();
+    let department = document.getElementById("department").value.trim();
+    let tech = document.getElementById("technician").value.trim();
+    let notes = document.getElementById("notes").value.trim();
+
+    let caseNumber = Math.floor(100000 + Math.random() * 900000);
+
+    let time = new Date().toLocaleTimeString("en-US");
+    let date = new Date().toLocaleDateString("en-US");
+
+    // حفظ الحالة في Firebase
+    db.ref("cases/" + caseNumber).set({
+        name: name,
+        file: file,
+        doctor: doctor,
+        assistant: assistant,
+        clinic: clinic,
+        caseType: caseType,
+        department: department,
+        technician: tech,
+        notes: notes,
+        date: date,
+        time: time
+    });
+
+    // عرض النتيجة
+    document.getElementById("resultText").innerHTML =
+        `اسم المريض: ${name}<br>
+        رقم الملف: ${file}<br>
+        رقم التوزيع: ${caseNumber}<br>
+        الفني المسؤول: ${tech}<br>
+        التاريخ: ${date} / ${time}`;
+
+    // QR
+    let qrLink = `https://wedad030.github.io/LABX-System/case-details.html?id=${caseNumber}`;
+    let qr = new QRious({
+        element: document.getElementById("qrcode"),
+        value: qrLink,
+        size: 200
+    });
+
+    document.getElementById("resultCard").style.display = "block";
+}
+</script>
+    <!-- مكتبة QR -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
 <script>
