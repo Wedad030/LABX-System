@@ -89,7 +89,24 @@ box-shadow:0 3px 12px rgba(0,0,0,0.15);
 </div>
 
 </div>
+document.getElementById("caseType").addEventListener("change", function () {
+    let type = this.value.trim();
 
+    // الحالات المرفوضة
+    let rejectedCases = [
+        "RPD 3 teeth or less",
+        "TM 3 teeth or less",
+        "RPD ثلاث اسنان او اقل",
+        "TM ثلاث اسنان او اقل"
+    ];
+
+    // نعرض التنبيه إذا كانت الحاله مرفوضه
+    if (rejectedCases.includes(type)) {
+        document.getElementById("rejectAlert").style.display = "block";
+    } else {
+        document.getElementById("rejectAlert").style.display = "none";
+    }
+});
 <script>
 // ============================
 // 1️⃣ الفنيين حسب الأقسام
@@ -159,14 +176,24 @@ select.appendChild(opt);
 // ============================
 function saveCase() {
 
-let name = document.getElementById("patientName").value;
-let file = document.getElementById("fileNumber").value;
-let dep = document.getElementById("department").value;
-let tech = document.getElementById("technician").value;
+function saveCase() {
 
-if(!name || !file || !dep || !tech){
-alert("⚠ يرجى تعبئة جميع البيانات المطلوبة");
-return;
+    let type = document.getElementById("caseType").value.trim();
+
+    let rejectedCases = [
+        "RPD 3 teeth or less",
+        "TM 3 teeth or less",
+        "RPD ثلاث اسنان او اقل",
+        "TM ثلاث اسنان او اقل"
+    ];
+
+    if (rejectedCases.includes(type)) {
+        alert("❌ لا يمكن حفظ هذه الحالة لأنها مرفوضة من قبل المعمل");
+        return; // يمنع الحفظ نهائياً
+    }
+
+    // هنا يتم الحفظ إذا الحالة ليست مرفوضة
+    alert("✔ تم حفظ الحالة بنجاح");
 }
 
 let caseNumber = Math.floor(100000 + Math.random() * 900000);
@@ -180,6 +207,16 @@ document.getElementById("qrImage").src = qrURL;
 document.getElementById("resultCard").style.display = "block";
 }
 </script>
-
+<div id="rejectAlert" 
+     style="display:none; 
+     background:#ffdddd; 
+     color:#b30000; 
+     padding:12px;
+     margin-top:15px;
+     border-left:5px solid #b30000;
+     border-radius:6px;
+     font-weight:bold;">
+⚠️ هذه الحالة مرفوضة من قبل المعمل — (RPD 3 teeth or less / TM 3 teeth or less)
+</div>
 </body>
 </html>
