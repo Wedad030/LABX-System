@@ -1,133 +1,242 @@
-// --------------------
-// Firebase config
-// --------------------
-var firebaseConfig = {
-    apiKey: "YOUR_KEY",
-    authDomain: "YOUR_DOMAIN",
-    databaseURL: "YOUR_DB_URL",
-    projectId: "labx-system",
-};
-firebase.initializeApp(firebaseConfig);
-var db = firebase.database();
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إضافة حالة - LABX System</title>
+  <link rel="stylesheet" href="style.css" />
 
-// ---------------------------
-// فنيين حسب كل قسم
-// ---------------------------
-const technicians = {
-    cad: [
-        {name:"قاسم عسيري", off:false},
-        {name:"أحمد كوشان", off:false},
-        {name:"عبدالله الرشيد", off:false},
-        {name:"عبدالله الشهراني", off:false},
-        {name:"أحمد القحطاني", off:false},
-        {name:"يحيى عسيري", off:true}, // إجازة
+  <!-- مكتبة QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body { background:#f7f7f7; font-family:'Tajawal', sans-serif; }
+
+    .page-container {
+      max-width: 900px;
+      margin: 25px auto;
+      background: #fff;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+    }
+
+    h2 { text-align:center; margin-bottom:18px; color:#0f766e; }
+
+    label { font-weight:bold; margin-top:10px; display:block; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border:1px solid #ccc;
+      margin-top:6px;
+      margin-bottom:10px;
+    }
+
+    textarea { min-height:70px; }
+
+    .btn {
+      background:#0f766e;
+      padding:12px 22px;
+      border:none;
+      color:#fff;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:15px;
+      width:100%;
+      margin-top:15px;
+    }
+
+    .btn:hover { opacity:0.9; }
+
+    .alert-red {
+      background:#fee2e2;
+      color:#b91c1c;
+      padding:10px;
+      border-radius:10px;
+      border-right:4px solid #dc2626;
+      display:none;
+      margin-bottom:10px;
+    }
+
+    .orange { color:#b45309; font-weight:bold; }
+
+    #qrPreview { text-align:center; margin-top:15px; }
+  </style>
+</head>
+
+<body>
+
+<div class="page-container">
+
+  <h2>إضافة حالة جديدة</h2>
+
+  <form id="caseForm">
+
+    <label>اسم المريض:</label>
+    <input type="text" id="patientName" required>
+
+    <label>رقم الملف:</label>
+    <input type="text" id="fileNumber" required>
+
+    <label>اسم الطبيب:</label>
+    <input type="text" id="doctorName" required>
+
+    <label>اسم المساعدة:</label>
+    <input type="text" id="assistantName">
+
+    <label>رقم العيادة:</label>
+    <input type="text" id="clinicNumber">
+
+    <label>نوع الحالة:</label>
+    <select id="caseMainType" required>
+      <option value="">— اختر —</option>
+      <option value="new">جديدة</option>
+      <option value="adjust">تعديل</option>
+    </select>
+
+    <div id="rejectBox" class="alert-red">⚠ هذه الحالة تعتبر مرفوضة من قبل المعمل</div>
+
+    <label>القسم:</label>
+    <select id="department" required>
+      <option value="">— اختر القسم —</option>
+      <option value="cadcam">CAD CAM</option>
+      <option value="pfm">PFM</option>
+      <option value="ortho">Ortho</option>
+      <option value="removable">Removable</option>
+      <option value="temp">Temporary</option>
+      <option value="casting">Casting</option>
+    </select>
+
+    <label>الفني:</label>
+    <select id="technician" required></select>
+
+    <label>الملاحظات:</label>
+    <textarea id="notes"></textarea>
+
+    <label>رقم توزيع الحالة:</label>
+    <input id="caseNumber" type="text" readonly>
+
+    <div id="qrPreview"></div>
+
+    <button type="submit" class="btn">حفظ الحالة</button>
+  </form>
+
+</div>
+
+<script type="module">
+
+  import { saveCaseToCloud } from "./firebase.js";
+
+  // ---------------------------
+  // 1) الفنيين حسب الأقسام
+  // ---------------------------
+  const techniciansByDept = {
+    cadcam: [
+      "قاسم عسيري","أحمد كوشان","عبدالله الرشيد","عبدالله الشهراني","أحمد القحطاني","يحيى عسيري"
     ],
+    pfm: ["سلطان الاحمري","أيمن الشهري","فيصل الوادعي"],
+    ortho: ["تركي الشهري","وليد الشهري","أسامة عسيري"],
+    removable: ["رشيد الكثيري","أحمد الصخري","عبداللطيف عسيري","محمد الشرفان","الاء","هيام","محمد الغامدي","منصور العويرضي","عبدالله الغامدي"],
+    temp: ["أحمد الشبل","وليد السويري","فهد العتيبي","عبدالله العود"],
+    casting: ["فهد الخميس"]
+  };
 
-    pfm: [
-        {name:"سلطان الأحمدي", off:true},
-        {name:"أيمن الشهري", off:false},
-        {name:"فيصل الوادعي", off:false}
-    ],
+  // الفنيين في الإجازة
+  const vacationList = ["تركي الشهري","سلطان الاحمري","يحيى عسيري"];
 
-    ortho: [
-        {name:"تركي الشهري", off:true},
-        {name:"وليد الشهري", off:false},
-        {name:"أسامة عسيري", off:false}
-    ],
+  const deptSelect = document.getElementById("department");
+  const techSelect = document.getElementById("technician");
+  const rejectBox = document.getElementById("rejectBox");
 
-    removable: [
-        {name:"رشيد الكثيري", off:false},
-        {name:"أحمد الصخري", off:false},
-        {name:"عبداللطيف عسيري", off:false},
-        {name:"محمد الشرفان", off:false},
-        {name:"الاء", off:false},
-        {name:"هيام", off:false},
-        {name:"محمد الغامدي", off:false},
-        {name:"منصور العويرضي", off:false}
-    ],
-
-    temp: [
-        {name:"أحمد الشبل", off:false},
-        {name:"وليد السويري", off:false},
-        {name:"فهد العتيبي", off:false},
-        {name:"عبدالله العود", off:false}
-    ],
-
-    casting: [
-        {name:"فهد الخميس", off:false}
-    ]
-};
-
-// ---------------------------
-// عند اختيار القسم
-// ---------------------------
-document.getElementById("department").addEventListener("change", function () {
-    let dep = this.value;
-    let techList = technicians[dep];
-    let techSelect = document.getElementById("technician");
-
+  // ---------------------------
+  // 2) تحميل الفنيين تلقائياً حسب القسم
+  // ---------------------------
+  deptSelect.addEventListener("change", () => {
+    const dept = deptSelect.value;
     techSelect.innerHTML = "";
 
-    techList.forEach(t => {
-        let opt = document.createElement("option");
-        opt.textContent = t.name;
-        opt.value = t.name;
+    if (!dept) return;
 
-        if (t.off) {
-            opt.disabled = true;
-            opt.classList.add("orange");
-            opt.textContent = t.name + " (إجازة)";
-        }
+    techniciansByDept[dept].forEach(t => {
+      let opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
 
-        techSelect.appendChild(opt);
+      if (vacationList.includes(t)) {
+        opt.disabled = true;
+        opt.textContent += " (إجازة)";
+        opt.style.color = "#b45309";
+      }
+
+      techSelect.appendChild(opt);
     });
-});
+  });
 
-// ---------------------------
-// كشف الحاله المرفوضة
-// ---------------------------
-document.getElementById("caseType").addEventListener("change", function () {
-    let type = this.value;
-    let alertBox = document.getElementById("rejectAlert");
+  // ---------------------------
+  // 3) نوع الحالة → إذا تعديل = مرفوضة
+  // ---------------------------
+  document.getElementById("caseMainType").addEventListener("change", () => {
+    const type = document.getElementById("caseMainType").value;
+    rejectBox.style.display = (type === "adjust") ? "block" : "none";
+  });
 
-    if (type === "edit") {
-        alertBox.style.display = "block";
-    } else {
-        alertBox.style.display = "none";
-    }
-});
+  // ---------------------------
+  // 4) توليد رقم توزيع + QR
+  // ---------------------------
+  function generateCaseNumber() {
+    const num = "LABX-" + Date.now();
+    document.getElementById("caseNumber").value = num;
+    return num;
+  }
 
-// ---------------------------
-// حفظ الحالة
-// ---------------------------
-function saveCase() {
-    let id = Date.now();
-    let patient = document.getElementById("patientName").value;
-    let file = document.getElementById("fileNumber").value;
-    let doctor = document.getElementById("doctorName").value;
-    let assistant = document.getElementById("assistantName").value;
-    let clinic = document.getElementById("clinicNumber").value;
-    let ctype = document.getElementById("caseType").value;
-    let dep = document.getElementById("department").value;
-    let tech = document.getElementById("technician").value;
-    let notes = document.getElementById("notes").value;
+  function generateQR(text) {
+    document.getElementById("qrPreview").innerHTML = "";
+    new QRCode(document.getElementById("qrPreview"), {
+      text,
+      width: 140,
+      height: 140
+    });
+  }
 
-    let caseNumber = "LABX-" + id;
+  generateCaseNumber();
 
-    let caseData = {
-        patient, file, doctor, assistant,
-        clinic, ctype, dep, tech, notes,
-        caseNumber,
-        date: new Date().toLocaleString("en-GB")
+  // ---------------------------
+  // 5) حفظ الحالة في Firebase
+  // ---------------------------
+  document.getElementById("caseForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data = {
+      caseNumber: document.getElementById("caseNumber").value,
+      patientName: document.getElementById("patientName").value,
+      fileNumber: document.getElementById("fileNumber").value,
+      doctorName: document.getElementById("doctorName").value,
+      assistantName: document.getElementById("assistantName").value,
+      clinicNumber: document.getElementById("clinicNumber").value,
+      caseType: document.getElementById("caseMainType").value,
+      department: deptSelect.value,
+      technician: techSelect.value,
+      notes: document.getElementById("notes").value,
+      createdDate: new Date().toLocaleDateString("en-GB"),
+      createdTime: new Date().toLocaleTimeString("en-GB")
     };
 
-    db.ref("cases/" + id).set(caseData);
+    await saveCaseToCloud(data);
 
-    // عرض النتيجة
-    document.getElementById("resultText").innerHTML =
-        "رقم التوزيع: " + caseNumber + "<br>" +
-        "الفني: " + tech + "<br>" +
-        "القسم: " + dep;
+    alert("✓ تم حفظ الحالة بنجاح");
 
-    document.getElementById("resultCard").style.display = "block";
-}
+    generateQR(`
+      Case: ${data.caseNumber}
+      Patient: ${data.patientName}
+      File: ${data.fileNumber}
+      Dept: ${data.department}
+      Tech: ${data.technician}
+    `);
+
+  });
+
+</script>
+
+</body>
+</html>
