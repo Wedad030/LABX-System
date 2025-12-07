@@ -3,174 +3,182 @@
 <head>
 <meta charset="UTF-8">
 <title>إضافة حالة جديدة</title>
-<link rel="stylesheet" href="style.css">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body { background:#f5f5f5; font-family:'Tajawal', sans-serif; }
-.container {
-    max-width:900px;
-    margin:25px auto;
-    background:#fff;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.1);
-}
-label { font-weight:bold; margin-top:15px; display:block; }
+body { font-family: 'Tajawal', sans-serif; background:#f5f5f5; padding:20px; }
+.container { background:#fff; padding:25px; max-width:600px; margin:auto; border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.1); }
 input, select, textarea {
-    width:100%;
-    padding:10px;
-    margin-top:5px;
-    border:1px solid #ccc;
-    border-radius:8px;
+width:100%; padding:12px; margin:8px 0; border-radius:8px;
+border:1px solid #ccc; font-size:16px;
 }
-textarea { min-height:60px; }
-.btn {
-    margin-top:20px;
-    width:100%;
-    background:#0f766e;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    color:white;
-    font-size:16px;
+button {
+width:100%; padding:12px; background:#0a6847; border:none; color:#fff;
+font-size:18px; border-radius:8px; cursor:pointer; margin-top:15px;
 }
-.alert-red {
-    display:none;
-    background:#fee2e2;
-    padding:10px;
-    border-radius:10px;
-    color:#b91c1c;
-    border-right:4px solid #dc2626;
+button:hover { background:#09543a; }
+
+.badge { padding:6px 12px; border-radius:6px; color:#fff; font-size:14px; }
+.red { background:#d72638; }
+.orange { background:#ff9f1c; }
+.green { background:#2ec4b6; }
+
+#resultCard {
+display:none; margin-top:25px; background:#fff; padding:18px; border-radius:10px;
+box-shadow:0 3px 12px rgba(0,0,0,0.15);
 }
 </style>
 </head>
 
 <body>
-
 <div class="container">
-
-<h2 style="text-align:center; color:#0f766e;">إضافة حالة جديدة</h2>
-
-<div id="rejectAlert" class="alert-red">⚠ هذه الحالة تعتبر مرفوضة</div>
+<h2>إضافة حالة جديدة</h2>
 
 <label>اسم المريض:</label>
-<input id="patientName">
+<input type="text" id="patientName">
 
 <label>رقم الملف:</label>
-<input id="fileNumber">
+<input type="number" id="fileNumber">
 
 <label>اسم الطبيب:</label>
-<input id="doctorName">
+<input type="text" id="doctor">
 
-<label>اسم المساعدة:</label>
-<input id="assistantName">
+<label>اسم المساعد:</label>
+<input type="text" id="assistant">
 
 <label>رقم العيادة:</label>
-<input id="clinicNumber">
+<input type="number" id="clinic">
 
 <label>نوع الحالة:</label>
 <select id="caseType">
-    <option value="">— اختر —</option>
-    <option value="new">جديدة</option>
-    <option value="adjust">تعديل</option>
+<option value="">اختر نوع الحالة</option>
+<option value="جديدة">جديدة</option>
+<option value="تعديل">تعديل</option>
+<option value="مرفوضة">مرفوضة</option>
 </select>
+
+<div id="rejectAlert" class="badge red" style="display:none">⚠ هذه الحالة مرفوضة من المعمل</div>
 
 <label>القسم:</label>
 <select id="department">
-    <option value="">— اختر القسم —</option>
-    <option value="cadcam">CAD CAM</option>
-    <option value="pfm">PFM</option>
-    <option value="ortho">ORTHO</option>
-    <option value="removable">Removable</option>
-    <option value="temp">Temporary</option>
+<option value="">اختر القسم</option>
+<option value="cad">CAD CAM</option>
+<option value="pfm">PFM</option>
+<option value="ortho">Ortho</option>
+<option value="removable">Removable</option>
+<option value="temporary">Temporary</option>
+<option value="casting">Casting</option>
 </select>
 
-<label>الفني:</label>
-<select id="technician"></select>
+<label>الفني المسؤول:</label>
+<select id="technician">
+<option value="">اختر القسم أولاً</option>
+</select>
 
 <label>ملاحظات:</label>
 <textarea id="notes"></textarea>
 
-<div id="qrArea" style="text-align:center; margin-top:20px;"></div>
+<button onclick="saveCase()">حفظ الحالة</button>
 
-<button class="btn" onclick="saveCase()">حفظ الحالة</button>
+<div id="resultCard">
+<h3>تم حفظ الحالة بنجاح</h3>
+<p><b>اسم المريض:</b> <span id="rName"></span></p>
+<p><b>رقم الملف:</b> <span id="rFile"></span></p>
+<p><b>رقم التوزيع:</b> <span id="rCode"></span></p>
+<img id="qrImage" style="width:150px; margin-top:10px;">
+</div>
 
 </div>
 
 <script>
-// ------------ قائمة الفنين --------------
+// ============================
+// 1️⃣ الفنيين حسب الأقسام
+// ============================
 const technicians = {
-    cadcam: ["قاسم عسيري","أحمد كوشان","عبدالله الرشيد","أحمد القحطاني"],
-    pfm: ["سلطان الاحمري","أيمن الشهري","فيصل الوادعي"],
-    ortho: ["تركي الشهري","وليد الشهري","أسامة عسيري"],
-    removable: ["رشيد الكثيري","أحمد الصخري","عبداللطيف عسيري","الاء","هيام"],
-    temp: ["أحمد الشبل","وليد السويري","فهد العتيبي"]
+cad: [
+{ name:"قاسم عسيري", off:false }, { name:"أحمد كوشان", off:true },
+{ name:"عبدالله الرشيد", off:false }, { name:"عبدالله الشهراني", off:false },
+{ name:"أحمد القحطاني", off:false }, { name:"يحيى عسيري", off:true }
+],
+pfm: [
+{ name:"سلطان الأحمري", off:true }, { name:"أيمن الشهري", off:false },
+{ name:"فيصل الوادعي", off:false }
+],
+ortho: [
+{ name:"تركي الشهري", off:true }, { name:"وليد الشهري", off:false },
+{ name:"أسامة عسيري", off:false }
+],
+removable: [
+{ name:"رشيد الكثيري", off:false }, { name:"أحمد الصخري", off:false },
+{ name:"عبداللطيف عسيري", off:false }, { name:"محمد الشرفان", off:false },
+{ name:"الاء", off:false }, { name:"هيام", off:false },
+{ name:"محمد الغامدي", off:false }, { name:"منصور العويرضي", off:false }
+],
+temporary: [
+{ name:"أحمد الشبل", off:false }, { name:"وليد السويري", off:false },
+{ name:"فهد العتيبي", off:false }, { name:"عبدالله العود", off:false }
+],
+casting: [
+{ name:"فهد الخميس", off:false }
+]
 };
 
-const vacations = ["تركي الشهري","سلطان الاحمري","يحيى عسيري"];
-
-// ------------ تغيير الفني حسب القسم ----------
-document.getElementById("department").addEventListener("change", function() {
-    let dept = this.value;
-    let techSelect = document.getElementById("technician");
-    techSelect.innerHTML = "";
-
-    if (!dept) return;
-
-    technicians[dept].forEach(t => {
-        let opt = document.createElement("option");
-        opt.value = t;
-
-        if (vacations.includes(t)) {
-            opt.textContent = t + " (إجازة)";
-            opt.disabled = true;
-            opt.style.color = "orange";
-        } else {
-            opt.textContent = t;
-        }
-
-        techSelect.appendChild(opt);
-    });
+// ============================
+// 2️⃣ إظهار التنبيه إذا الحالة مرفوضة
+// ============================
+document.getElementById("caseType").addEventListener("change", function(){
+document.getElementById("rejectAlert").style.display =
+(this.value === "مرفوضة") ? "block" : "none";
 });
 
-// ----------- اظهار تنبيه حالة مرفوضة ----------
-document.getElementById("caseType").addEventListener("change", function() {
-    document.getElementById("rejectAlert").style.display =
-        (this.value === "adjust") ? "block" : "none";
+// ============================
+// 3️⃣ تعبئة الفنيين حسب القسم
+// ============================
+document.getElementById("department").addEventListener("change", function(){
+let dep = this.value;
+let techList = technicians[dep] || [];
+let select = document.getElementById("technician");
+
+select.innerHTML = "";
+techList.forEach(t => {
+let opt = document.createElement("option");
+opt.value = t.name;
+opt.textContent = t.off ? `${t.name} (إجازة)` : t.name;
+
+if(t.off) opt.style.color = "orange";
+else opt.style.color = "black";
+
+opt.disabled = t.off;
+
+select.appendChild(opt);
+});
 });
 
-// ----------- حفظ الحالة (LocalStorage فقط للعرض) ----------
+// ============================
+// 4️⃣ حفظ الحالة
+// ============================
 function saveCase() {
 
-    const caseData = {
-        patient: patientName.value,
-        file: fileNumber.value,
-        doctor: doctorName.value,
-        assistant: assistantName.value,
-        clinic: clinicNumber.value,
-        type: caseType.value,
-        dept: department.value,
-        tech: technician.value,
-        notes: notes.value,
-        created: new Date().toLocaleString("en-GB")
-    };
+let name = document.getElementById("patientName").value;
+let file = document.getElementById("fileNumber").value;
+let dep = document.getElementById("department").value;
+let tech = document.getElementById("technician").value;
 
-    // حفظ محلي للعرض فقط
-    localStorage.setItem("lastCase", JSON.stringify(caseData));
-
-    alert("✓ تم حفظ الحالة (نسخة GitHub فقط — بدون Firebase)");
-
-    // QR
-    document.getElementById("qrArea").innerHTML = "";
-    new QRCode(document.getElementById("qrArea"), {
-        text: JSON.stringify(caseData),
-        width: 150,
-        height: 150
-    });
+if(!name || !file || !dep || !tech){
+alert("⚠ يرجى تعبئة جميع البيانات المطلوبة");
+return;
 }
 
+let caseNumber = Math.floor(100000 + Math.random() * 900000);
+let qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${caseNumber}`;
+
+document.getElementById("rName").innerHTML = name;
+document.getElementById("rFile").innerHTML = file;
+document.getElementById("rCode").innerHTML = caseNumber;
+document.getElementById("qrImage").src = qrURL;
+
+document.getElementById("resultCard").style.display = "block";
+}
 </script>
 
 </body>
