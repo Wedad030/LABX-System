@@ -1,83 +1,52 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>تفاصيل الحالة</title>
-    <link rel="stylesheet" href="style.css">
-
     <style>
-        .card {
-            padding: 20px;
-            margin: 25px auto;
-            background: white;
-            border-radius: 14px;
-            max-width: 450px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        h2 {
-            margin-bottom: 15px;
-        }
-
-        p {
-            margin: 6px 0;
-            font-size: 16px;
-        }
+        body { font-family: sans-serif; padding: 30px; }
+        .card { padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
     </style>
 </head>
+<body>
 
-<body class="bg fade-in">
+<h2>تفاصيل الحالة</h2>
+<div id="caseInfo" class="card">جاري تحميل البيانات...</div>
 
-    <div class="card">
-        <h2>🦷 تفاصيل الحالة</h2>
+<script type="module">
+import { getAllCases } from "./firebase.js";
 
-        <p><b>اسم المريض:</b> <span id="patientName"></span></p>
-        <p><b>رقم الملف:</b> <span id="fileNumber"></span></p>
-        <p><b>الطبيب:</b> <span id="doctorName"></span></p>
-        <p><b>المساعد:</b> <span id="assistantName"></span></p>
-        <p><b>العيادة:</b> <span id="clinicNumber"></span></p>
-        <p><b>نوع الحالة:</b> <span id="caseType"></span></p>
-        <p><b>الفني:</b> <span id="technician"></span></p>
-        <p><b>الملاحظات:</b> <span id="notes"></span></p>
-        <p><b>الحالة:</b> <span id="status"></span></p>
-        <p><b>تاريخ الإدخال:</b> <span id="createdAt"></span></p>
-    </div>
+// قراءة رقم الحالة من الرابط
+const urlParams = new URLSearchParams(window.location.search);
+const caseID = urlParams.get("id");
 
-    <!-- Firebase -->
-    <script type="module">
-        import { getCaseById } from "./firebase.js";
+// تحميل البيانات من فايربيس
+async function loadCase() {
+    const allCases = await getAllCases();
+    const found = allCases.find(c => c.caseNumber == caseID);
 
-        const params = new URLSearchParams(window.location.search);
-        const caseId = params.get("id");
+    if (!found) {
+        document.getElementById("caseInfo").innerHTML = "❌ لا توجد حالة بهذا الرقم";
+        return;
+    }
 
-        if (!caseId) {
-            alert("❌ لا يوجد رقم حالة!");
-        } else {
-            loadCase(caseId);
-        }
+    document.getElementById("caseInfo").innerHTML = `
+        <strong>اسم المريض:</strong> ${found.patientName}<br>
+        <strong>رقم الملف:</strong> ${found.fileNumber}<br>
+        <strong>الطبيب:</strong> ${found.doctor}<br>
+        <strong>المساعد:</strong> ${found.assistant}<br>
+        <strong>القسم:</strong> ${found.department}<br>
+        <strong>الفني:</strong> ${found.technician}<br>
+        <strong>نوع الحالة:</strong> ${found.type}<br>
+        <strong>التاريخ:</strong> ${found.date}<br>
+        <strong>الوقت:</strong> ${found.time}<br>
+        <br><br>
+        <a href="index.html">رجوع للصفحة الرئيسية</a>
+    `;
+}
 
-        async function loadCase(id) {
-            const data = await getCaseById(id);
-
-            if (!data) {
-                alert("❌ لم يتم العثور على بيانات لهذه الحالة");
-                return;
-            }
-
-            document.getElementById("patientName").innerText = data.patientName;
-            document.getElementById("fileNumber").innerText = data.fileNumber;
-            document.getElementById("doctorName").innerText = data.doctorName;
-            document.getElementById("assistantName").innerText = data.assistantName;
-            document.getElementById("clinicNumber").innerText = data.clinicNumber;
-            document.getElementById("caseType").innerText = data.caseType;
-            document.getElementById("technician").innerText = data.technicianName;
-            document.getElementById("notes").innerText = data.notes || "—";
-            document.getElementById("status").innerText = data.status;
-            document.getElementById("createdAt").innerText = data.createdAt;
-        }
-    </script>
+loadCase();
+</script>
 
 </body>
 </html>
