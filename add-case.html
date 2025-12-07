@@ -1,610 +1,133 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <title>إضافة حالة - LABX</title>
-  <link rel="stylesheet" href="style.css" />
+// --------------------
+// Firebase config
+// --------------------
+var firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_DOMAIN",
+    databaseURL: "YOUR_DB_URL",
+    projectId: "labx-system",
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
 
-  <!-- مكتبة QR -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+// ---------------------------
+// فنيين حسب كل قسم
+// ---------------------------
+const technicians = {
+    cad: [
+        {name:"قاسم عسيري", off:false},
+        {name:"أحمد كوشان", off:false},
+        {name:"عبدالله الرشيد", off:false},
+        {name:"عبدالله الشهراني", off:false},
+        {name:"أحمد القحطاني", off:false},
+        {name:"يحيى عسيري", off:true}, // إجازة
+    ],
 
-  <style>
-    /* بعض اللمسات الخاصة بهذه الصفحة فقط */
+    pfm: [
+        {name:"سلطان الأحمدي", off:true},
+        {name:"أيمن الشهري", off:false},
+        {name:"فيصل الوادعي", off:false}
+    ],
 
-    .form-card {
-      max-width: 900px;
-      margin: 25px auto;
-      background: var(--card-bg, #fff);
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-      padding: 24px 26px;
-    }
+    ortho: [
+        {name:"تركي الشهري", off:true},
+        {name:"وليد الشهري", off:false},
+        {name:"أسامة عسيري", off:false}
+    ],
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 14px 18px;
-    }
+    removable: [
+        {name:"رشيد الكثيري", off:false},
+        {name:"أحمد الصخري", off:false},
+        {name:"عبداللطيف عسيري", off:false},
+        {name:"محمد الشرفان", off:false},
+        {name:"الاء", off:false},
+        {name:"هيام", off:false},
+        {name:"محمد الغامدي", off:false},
+        {name:"منصور العويرضي", off:false}
+    ],
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 14px;
-    }
+    temp: [
+        {name:"أحمد الشبل", off:false},
+        {name:"وليد السويري", off:false},
+        {name:"فهد العتيبي", off:false},
+        {name:"عبدالله العود", off:false}
+    ],
 
-    .form-group label {
-      font-weight: 600;
-      color: #444;
-    }
+    casting: [
+        {name:"فهد الخميس", off:false}
+    ]
+};
 
-    .form-group small {
-      color: #777;
-      font-size: 11px;
-    }
+// ---------------------------
+// عند اختيار القسم
+// ---------------------------
+document.getElementById("department").addEventListener("change", function () {
+    let dep = this.value;
+    let techList = technicians[dep];
+    let techSelect = document.getElementById("technician");
 
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      border-radius: 10px;
-      border: 1px solid #d3d7dd;
-      padding: 8px 10px;
-      font-size: 14px;
-    }
+    techSelect.innerHTML = "";
 
-    .form-group textarea {
-      min-height: 70px;
-      resize: vertical;
-    }
+    techList.forEach(t => {
+        let opt = document.createElement("option");
+        opt.textContent = t.name;
+        opt.value = t.name;
 
-    .section-title {
-      font-weight: 700;
-      margin: 18px 0 8px;
-      font-size: 15px;
-      color: var(--green-main, #0f766e);
-    }
-
-    .chips-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .chip {
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #f2f4f7;
-      font-size: 11px;
-    }
-
-    .chip-orange {
-      background: #ffedd5;
-      color: #b45309;
-      font-weight: 600;
-    }
-
-    .chip-red {
-      background: #fee2e2;
-      color: #b91c1c;
-      font-weight: 600;
-    }
-
-    .warning-box {
-      margin-top: 8px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      font-size: 13px;
-      color: #b91c1c;
-      display: none;
-    }
-
-    .motivation {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #4b5563;
-      text-align: center;
-    }
-
-    .motivation span {
-      color: var(--green-main, #0f766e);
-      font-weight: 700;
-    }
-
-    .actions-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 18px;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .btn-main {
-      background: var(--green-main, #0f766e);
-      color: #fff;
-      border-radius: 999px;
-      padding: 10px 24px;
-      border: none;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .btn-main:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.14);
-    }
-
-    .btn-ghost {
-      background: #f3f4f6;
-      border-radius: 999px;
-      border: none;
-      padding: 8px 16px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .qr-preview {
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .qr-preview canvas {
-      margin: 0 auto;
-    }
-
-    @media (max-width: 720px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body class="bg">
-  <div class="layout fade-in">
-
-    <!-- الهيدر -->
-    <header class="top-header slide-down">
-      <div class="top-header-right">
-        <img src="labx.jpeg" class="logo-img" alt="LABX Dental" />
-        <div class="brand-text">
-          <div class="brand-title">LABX DENTAL</div>
-          <div class="brand-sub">Add Case</div>
-        </div>
-      </div>
-
-      <div class="top-header-left">
-        <div class="user-info">
-          <span class="hello-text">مرحباً،</span>
-          <span id="username" class="user-name">User</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- المحتوى -->
-    <main class="main-card fade-in">
-      <div class="form-card slide-up">
-        <h2 style="margin-bottom: 10px;">إضافة حالة جديدة</h2>
-        <p style="font-size:13px;color:#6b7280;margin-bottom:18px;">
-          يرجى تعبئة بيانات الحالة بدقة، النظام راح يوزع الحالة تلقائياً على الفني المناسب ويولد QR لكل حالة.
-        </p>
-
-        <!-- نموذج بيانات الحالة -->
-        <form id="addCaseForm">
-          <div class="form-grid">
-            <!-- بيانات أساسية -->
-            <div class="form-group">
-              <label for="patientName">اسم المريض</label>
-              <input id="patientName" type="text" required placeholder="Patient Name" />
-            </div>
-
-            <div class="form-group">
-              <label for="fileNumber">رقم الملف</label>
-              <input id="fileNumber" type="text" required placeholder="File Number" />
-            </div>
-
-            <div class="form-group">
-              <label for="doctorName">اسم الطبيب</label>
-              <input id="doctorName" type="text" required placeholder="Doctor Name" />
-            </div>
-
-            <div class="form-group">
-              <label for="assistantName">اسم المساعدة</label>
-              <input id="assistantName" type="text" placeholder="Assistant Name" />
-            </div>
-
-            <div class="form-group">
-              <label for="clinicNumber">رقم العيادة</label>
-              <input id="clinicNumber" type="text" placeholder="Clinic No." />
-            </div>
-
-            <!-- نوع الحالة الرئيسي -->
-            <div class="form-group">
-              <label for="caseMainType">نوع الحالة</label>
-              <select id="caseMainType" required>
-                <option value="">— اختاري —</option>
-                <option value="new">حالة جديدة</option>
-                <option value="remake">إعادة</option>
-                <option value="adjustment">تعديل</option>
-                <option value="second-step">خطوة ثانية</option>
-              </select>
-              <small>يستخدم في الفرز الإحصائي.</small>
-            </div>
-
-            <!-- القسم -->
-            <div class="form-group">
-              <label for="department">القسم</label>
-              <select id="department" required>
-                <option value="">— اختاري القسم —</option>
-                <option value="cadcam">قسم الكاد كام</option>
-                <option value="pfm">قسم PFM</option>
-                <option value="ortho">قسم الأوثو</option>
-                <option value="removable">قسم المتحرك</option>
-                <option value="temp">قسم المؤقت</option>
-                <option value="casting">قسم الصب</option>
-              </select>
-              <small>بعد اختيار القسم تظهر قائمة الفنيين تلقائياً.</small>
-            </div>
-
-            <!-- الفني -->
-            <div class="form-group">
-              <label for="technician">الفني المسؤول</label>
-              <select id="technician" required>
-                <option value="">— اختاري أولاً القسم —</option>
-              </select>
-              <small id="vacationHint" style="color:#b45309;display:none;">
-                ⚠ الفني المحدد حالياً في إجازة، يفضل اختيار فني آخر.
-              </small>
-            </div>
-
-            <!-- نوع حالة مرفوضة -->
-            <div class="form-group">
-              <label for="rejectType">هل الحالة مرفوضة من المعمل؟</label>
-              <select id="rejectType">
-                <option value="">لا، حالة عادية</option>
-                <option value="rpd-3">RPD – ثلاث أسنان أو أقل</option>
-                <option value="temp-3">Temp Crown – ثلاث أسنان أو أقل</option>
-              </select>
-              <small>في حال اختيار نوع مرفوض، سيظهر تنبيه باللون الأحمر.</small>
-            </div>
-
-            <!-- تاريخ ووقت -->
-            <div class="form-group">
-              <label>تاريخ التسجيل (بالإنجليزي)</label>
-              <input id="createdDate" type="text" readonly />
-            </div>
-
-            <div class="form-group">
-              <label>وقت التسجيل (بالإنجليزي)</label>
-              <input id="createdTime" type="text" readonly />
-            </div>
-
-            <!-- رفع ملف -->
-            <div class="form-group">
-              <label for="caseFile">رفع صورة أو ملف</label>
-              <input id="caseFile" type="file" accept="image/*,.pdf" />
-              <small>حاليًا يتم حفظ اسم الملف فقط. لاحقًا نربطها بتخزين سحابي.</small>
-            </div>
-
-            <!-- رقم توزيع آلي -->
-            <div class="form-group">
-              <label>رقم توزيع الحالة</label>
-              <input id="caseNumber" type="text" readonly />
-              <small>يتم توليده تلقائيًا عند فتح الصفحة.</small>
-            </div>
-
-            <!-- ملاحظات -->
-            <div class="form-group" style="grid-column:1 / -1;">
-              <label for="notes">ملاحظات</label>
-              <textarea id="notes" placeholder="أي ملاحظات إضافية على الحالة"></textarea>
-            </div>
-          </div>
-
-          <!-- تنبيهات خاصة بالرفض -->
-          <div id="rejectWarning" class="warning-box">
-            ⚠ تنبيه: هذه الحالة ضمن الحالات <span id="rejectLabel"></span> (3 أسنان أو أقل)،
-            الرجاء التأكد من تعبئة جميع البيانات ومناقشة الدكتور قبل الإرسال.
-          </div>
-
-          <!-- عرض الفنيين في الإجازة -->
-          <div class="section-title">الفنيون في إجازة اليوم</div>
-          <div class="chips-row" id="vacationChips"></div>
-
-          <!-- QR PREVIEW -->
-          <div class="section-title">QR للحالة</div>
-          <p style="font-size:12px;color:#6b7280;">
-            يتم توليد QR تلقائيًا يحتوي: اسم المريض، رقم الملف، رقم الحالة، القسم، الفني، وتاريخ التسجيل.
-          </p>
-          <div class="qr-preview">
-            <div id="qrcode"></div>
-          </div>
-
-          <!-- أزرار -->
-          <div class="actions-row">
-            <div>
-              <button type="submit" class="btn-main">حفظ الحالة</button>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button type="button" class="btn-ghost" onclick="window.location.href='index.html'">
-                ⬅ رجوع للصفحة الرئيسية
-              </button>
-              <button type="button" class="btn-ghost" onclick="window.location.href='ready-cases.html'">
-                🔍 بحث في الحالات
-              </button>
-            </div>
-          </div>
-
-          <div class="motivation">
-            كل حالة توثقينها اليوم تقربك من <span>نظام معمل منظم وهدوء ذهني لك</span> 🤍
-          </div>
-        </form>
-      </div>
-    </main>
-  </div>
-
-  <!-- سكربتات النظام -->
-  <script src="app.js"></script>
-
-  <!-- ربط Firebase + منطق الصفحة -->
-  <script type="module">
-    import { saveCaseToCloud } from "./firebase.js";
-
-    // ------------- بيانات الفنيين حسب القسم -------------
-    const techniciansByDept = {
-      cadcam: [
-        "قاسم عسيري",
-        "أحمد كوشان",
-        "عبدالله الرشيد",
-        "عبدالله الشهراني",
-        "أحمد القحطاني",
-        "يحيى عسيري",
-      ],
-      pfm: [
-        "سلطان الاحمري",
-        "أيمن الشهري",
-        "فيصل الوادعي",
-      ],
-      ortho: [
-        "تركي الشهري",
-        "وليد الشهري",
-        "أسامة عسيري",
-      ],
-      removable: [
-        "رشيد الكثيري",
-        "أحمد الصخري",
-        "عبداللطيف عسيري",
-        "محمد الشرفان",
-        "الاء",
-        "هيام",
-        "محمد الغامدي",
-        "منصور العويرضي",
-        "عبدالله الغامدي",
-      ],
-      temp: [
-        "احمد الشبل",
-        "وليد السويري",
-        "فهد العتيبي",
-        "عبدالله العود",
-      ],
-      casting: [
-        "فهد الخميس",
-      ],
-    };
-
-    // الفنيون في إجازة
-    const vacationTechs = ["تركي الشهري", "سلطان الاحمري", "يحيى عسيري"];
-
-    // عناصر الصفحة
-    const departmentSelect   = document.getElementById("department");
-    const technicianSelect   = document.getElementById("technician");
-    const vacationHint       = document.getElementById("vacationHint");
-    const rejectTypeSelect   = document.getElementById("rejectType");
-    const rejectWarning      = document.getElementById("rejectWarning");
-    const rejectLabel        = document.getElementById("rejectLabel");
-    const vacationChips      = document.getElementById("vacationChips");
-    const form               = document.getElementById("addCaseForm");
-
-    const createdDateInput   = document.getElementById("createdDate");
-    const createdTimeInput   = document.getElementById("createdTime");
-    const caseNumberInput    = document.getElementById("caseNumber");
-    const patientNameInput   = document.getElementById("patientName");
-    const fileNumberInput    = document.getElementById("fileNumber");
-    const doctorNameInput    = document.getElementById("doctorName");
-    const assistantNameInput = document.getElementById("assistantName");
-    const clinicNumberInput  = document.getElementById("clinicNumber");
-    const caseMainTypeInput  = document.getElementById("caseMainType");
-    const notesInput         = document.getElementById("notes");
-    const caseFileInput      = document.getElementById("caseFile");
-
-    // -------- ضبط التاريخ والوقت ورقم الحالة عند فتح الصفحة --------
-    function initMeta() {
-      const now = new Date();
-      createdDateInput.value = now.toLocaleDateString("en-GB");  // DD/MM/YYYY
-      createdTimeInput.value = now.toLocaleTimeString("en-GB");  // HH:MM:SS
-      caseNumberInput.value  = "LABX-" + now.getTime();          // رقم توزيع
-    }
-
-    // -------- إنشاء شارات الفنيين في الإجازة --------
-    function renderVacationChips() {
-      vacationChips.innerHTML = "";
-      vacationTechs.forEach(name => {
-        const span = document.createElement("span");
-        span.className = "chip chip-orange";
-        span.textContent = name;
-        vacationChips.appendChild(span);
-      });
-    }
-
-    // -------- تحميل الفنيين حسب القسم --------
-    function loadTechniciansForDept() {
-      const dept = departmentSelect.value;
-      technicianSelect.innerHTML = "";
-
-      if (!dept || !techniciansByDept[dept]) {
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "— اختاري أولاً القسم —";
-        technicianSelect.appendChild(opt);
-        return;
-      }
-
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = "— اختاري الفني —";
-      technicianSelect.appendChild(placeholder);
-
-      techniciansByDept[dept].forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-
-        if (vacationTechs.includes(name)) {
-          opt.textContent += " (إجازة)";
-          opt.style.color = "#b45309";
+        if (t.off) {
+            opt.disabled = true;
+            opt.classList.add("orange");
+            opt.textContent = t.name + " (إجازة)";
         }
 
-        technicianSelect.appendChild(opt);
-      });
-    }
-
-    // -------- مراقبة اختيار فني في إجازة --------
-    function handleTechnicianChange() {
-      const tech = technicianSelect.value;
-      if (vacationTechs.includes(tech)) {
-        vacationHint.style.display = "block";
-      } else {
-        vacationHint.style.display = "none";
-      }
-      generateQRPreview(); // نحدث الـ QR عند تغيير الفني
-    }
-
-    // -------- تنبيه حالات الرفض --------
-    function handleRejectChange() {
-      const val = rejectTypeSelect.value;
-      if (!val) {
-        rejectWarning.style.display = "none";
-        rejectLabel.textContent = "";
-        return;
-      }
-
-      if (val === "rpd-3") {
-        rejectLabel.textContent = "RPD (٣ أسنان أو أقل)";
-      } else if (val === "temp-3") {
-        rejectLabel.textContent = "Temporary Crown (٣ أسنان أو أقل)";
-      }
-      rejectWarning.style.display = "block";
-    }
-
-    // -------- توليد نص الـ QR --------
-    function buildQRText() {
-      const dept = departmentSelect.options[departmentSelect.selectedIndex]?.text || "";
-      const tech = technicianSelect.value || "";
-      return `
-LABX Dental
-Case No: ${caseNumberInput.value}
-Patient: ${patientNameInput.value}
-File: ${fileNumberInput.value}
-Doctor: ${doctorNameInput.value}
-Dept: ${dept}
-Tech: ${tech}
-Created: ${createdDateInput.value} ${createdTimeInput.value}
-`.trim();
-    }
-
-    // -------- توليد QR وعرضه --------
-    let qrInstance = null;
-    function generateQRPreview() {
-      const qrContainer = document.getElementById("qrcode");
-      qrContainer.innerHTML = "";
-      const text = buildQRText();
-      if (!text) return;
-      qrInstance = new QRCode(qrContainer, {
-        text,
-        width: 132,
-        height: 132,
-      });
-    }
-
-    // -------- عند إرسال النموذج --------
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      if (!patientNameInput.value || !fileNumberInput.value || !doctorNameInput.value) {
-        alert("رجاءً تأكدي من تعبئة: اسم المريض، رقم الملف، اسم الطبيب.");
-        return;
-      }
-
-      if (!departmentSelect.value || !technicianSelect.value) {
-        alert("رجاءً اختاري القسم والفني.");
-        return;
-      }
-
-      const file = caseFileInput.files[0];
-      const fileInfo = file
-        ? { name: file.name, type: file.type, size: file.size }
-        : null;
-
-      const caseData = {
-        caseNumber:   caseNumberInput.value,
-        patientName:  patientNameInput.value,
-        fileNumber:   fileNumberInput.value,
-        doctorName:   doctorNameInput.value,
-        assistantName:assistantNameInput.value,
-        clinicNumber: clinicNumberInput.value,
-        caseMainType: caseMainTypeInput.value,
-        department:   departmentSelect.value,
-        technicianName: technicianSelect.value,
-        notes:        notesInput.value,
-        rejectType:   rejectTypeSelect.value,
-        createdDate:  createdDateInput.value,
-        createdTime:  createdTimeInput.value,
-        createdAtISO: new Date().toISOString(),
-        status:       rejectTypeSelect.value ? "مرفوضة" : "تحت الإجراء",
-        fileInfo,
-      };
-
-      // حفظ نسخة محلية احتياطية
-      const local = JSON.parse(localStorage.getItem("labxNewCases") || "[]");
-      local.push(caseData);
-      localStorage.setItem("labxNewCases", JSON.stringify(local));
-
-      // حفظ في Firebase
-      try {
-        await saveCaseToCloud(caseData);
-      } catch (err) {
-        console.error(err);
-        alert("تم حفظ الحالة محليًا، لكن حدث خطأ في الاتصال بالسحابة.");
-      }
-
-      alert("✓ تم حفظ الحالة وتوليد رقم توزيع و QR بنجاح.");
-      window.location.href = "index.html";
+        techSelect.appendChild(opt);
     });
+});
 
-    // -------- ربط الأحداث --------
-    departmentSelect.addEventListener("change", () => {
-      loadTechniciansForDept();
-      generateQRPreview();
-    });
+// ---------------------------
+// كشف الحاله المرفوضة
+// ---------------------------
+document.getElementById("caseType").addEventListener("change", function () {
+    let type = this.value;
+    let alertBox = document.getElementById("rejectAlert");
 
-    technicianSelect.addEventListener("change", handleTechnicianChange);
-    rejectTypeSelect.addEventListener("change", handleRejectChange);
+    if (type === "edit") {
+        alertBox.style.display = "block";
+    } else {
+        alertBox.style.display = "none";
+    }
+});
 
-    [
-      patientNameInput,
-      fileNumberInput,
-      doctorNameInput,
-      createdDateInput,
-      createdTimeInput,
-    ].forEach(el => el.addEventListener("input", generateQRPreview));
+// ---------------------------
+// حفظ الحالة
+// ---------------------------
+function saveCase() {
+    let id = Date.now();
+    let patient = document.getElementById("patientName").value;
+    let file = document.getElementById("fileNumber").value;
+    let doctor = document.getElementById("doctorName").value;
+    let assistant = document.getElementById("assistantName").value;
+    let clinic = document.getElementById("clinicNumber").value;
+    let ctype = document.getElementById("caseType").value;
+    let dep = document.getElementById("department").value;
+    let tech = document.getElementById("technician").value;
+    let notes = document.getElementById("notes").value;
 
-    // -------- تهيئة الصفحة عند التحميل --------
-    initMeta();
-    renderVacationChips();
-    generateQRPreview();
-  </script>
-</body>
-</html>
+    let caseNumber = "LABX-" + id;
+
+    let caseData = {
+        patient, file, doctor, assistant,
+        clinic, ctype, dep, tech, notes,
+        caseNumber,
+        date: new Date().toLocaleString("en-GB")
+    };
+
+    db.ref("cases/" + id).set(caseData);
+
+    // عرض النتيجة
+    document.getElementById("resultText").innerHTML =
+        "رقم التوزيع: " + caseNumber + "<br>" +
+        "الفني: " + tech + "<br>" +
+        "القسم: " + dep;
+
+    document.getElementById("resultCard").style.display = "block";
+}
