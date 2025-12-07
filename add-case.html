@@ -198,18 +198,31 @@ document.getElementById("department").addEventListener("change", function () {
 
     // عرض النتيجة
     document.getElementById("resultText").innerHTML =
+        document.getElementById("resultText").innerHTML =
+    `اسم المريض: ${name}<br>
+     رقم الملف: ${file}<br>
+     رقم التوزيع: ${caseNumber}<br>
+     اسم الفني: ${tech}<br>
+     التاريخ: ${date} / ${time}`;
+        // 1) رابط صفحة تفاصيل الحالة
+let qrLink = `https://wedad030.github.io/LABX-System/case-details.html?id=${caseNumber}`;
+
+// 2) إنشاء QR فعلي
+let qr = new QRious({
+    element: document.getElementById("qrcode"),
+    value: qrLink,
+    size: 200
+});
+
+// 3) إظهار بطاقة النتيجة
+document.getElementById("resultCard").style.display = "block";
         `اسم المريض: ${name}<br>
          رقم الملف: ${file}<br>
          رقم التوزيع: ${caseNumber}<br>
          الفني المسؤول: ${tech}<br>
          التاريخ: ${date} / ${time}`;
 
-    // QR CODE
-    let qr = new QRious({
-        element: document.getElementById("qrCode"),
-        value: `${name} - ${file} - Case:${caseNumber}`,
-        size: 200
-    });
+ 
 
     document.getElementById("resultCard").style.display = "block";
 }
