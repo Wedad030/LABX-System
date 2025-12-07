@@ -1,216 +1,175 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>إضافة حالة - LABX System</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>إضافة حالة جديدة</title>
+<link rel="stylesheet" href="style.css">
 
-  <!-- مكتبة QR -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <style>
-    body { background:#f7f7f7; font-family:'Tajawal', sans-serif; }
-
-    .page-container {
-      max-width: 900px;
-      margin: 25px auto;
-      background: #fff;
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 5px 18px rgba(0,0,0,0.08);
-    }
-
-    h2 { text-align:center; margin-bottom:18px; color:#0f766e; }
-
-    label { font-weight:bold; margin-top:10px; display:block; }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border:1px solid #ccc;
-      margin-top:6px;
-      margin-bottom:10px;
-    }
-
-    textarea { min-height:70px; }
-
-    .btn {
-      background:#0f766e;
-      padding:12px 22px;
-      border:none;
-      color:#fff;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:15px;
-      width:100%;
-      margin-top:15px;
-    }
-
-    .alert-red {
-      background:#fee2e2;
-      color:#b91c1c;
-      padding:10px;
-      border-radius:10px;
-      border-right:4px solid #dc2626;
-      display:none;
-      margin-bottom:10px;
-    }
-
-    #qrPreview { text-align:center; margin-top:15px; }
-  </style>
+<style>
+body { background:#f5f5f5; font-family:'Tajawal', sans-serif; }
+.container {
+    max-width:900px;
+    margin:25px auto;
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+label { font-weight:bold; margin-top:15px; display:block; }
+input, select, textarea {
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+textarea { min-height:60px; }
+.btn {
+    margin-top:20px;
+    width:100%;
+    background:#0f766e;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    color:white;
+    font-size:16px;
+}
+.alert-red {
+    display:none;
+    background:#fee2e2;
+    padding:10px;
+    border-radius:10px;
+    color:#b91c1c;
+    border-right:4px solid #dc2626;
+}
+</style>
 </head>
 
 <body>
 
-<div class="page-container">
+<div class="container">
 
-  <h2>إضافة حالة جديدة</h2>
+<h2 style="text-align:center; color:#0f766e;">إضافة حالة جديدة</h2>
 
-  <form id="caseForm">
+<div id="rejectAlert" class="alert-red">⚠ هذه الحالة تعتبر مرفوضة</div>
 
-    <label>اسم المريض:</label>
-    <input type="text" id="patientName" required>
+<label>اسم المريض:</label>
+<input id="patientName">
 
-    <label>رقم الملف:</label>
-    <input type="text" id="fileNumber" required>
+<label>رقم الملف:</label>
+<input id="fileNumber">
 
-    <label>اسم الطبيب:</label>
-    <input type="text" id="doctorName" required>
+<label>اسم الطبيب:</label>
+<input id="doctorName">
 
-    <label>اسم المساعدة:</label>
-    <input type="text" id="assistantName">
+<label>اسم المساعدة:</label>
+<input id="assistantName">
 
-    <label>رقم العيادة:</label>
-    <input type="text" id="clinicNumber">
+<label>رقم العيادة:</label>
+<input id="clinicNumber">
 
-    <label>نوع الحالة:</label>
-    <select id="caseMainType" required>
-      <option value="">— اختر —</option>
-      <option value="new">جديدة</option>
-      <option value="adjust">تعديل</option>
-    </select>
+<label>نوع الحالة:</label>
+<select id="caseType">
+    <option value="">— اختر —</option>
+    <option value="new">جديدة</option>
+    <option value="adjust">تعديل</option>
+</select>
 
-    <div id="rejectBox" class="alert-red">⚠ هذه الحالة تعتبر مرفوضة من قبل المعمل</div>
+<label>القسم:</label>
+<select id="department">
+    <option value="">— اختر القسم —</option>
+    <option value="cadcam">CAD CAM</option>
+    <option value="pfm">PFM</option>
+    <option value="ortho">ORTHO</option>
+    <option value="removable">Removable</option>
+    <option value="temp">Temporary</option>
+</select>
 
-    <label>القسم:</label>
-    <select id="department" required>
-      <option value="">— اختر القسم —</option>
-      <option value="cadcam">CAD CAM</option>
-      <option value="pfm">PFM</option>
-      <option value="ortho">Ortho</option>
-      <option value="removable">Removable</option>
-      <option value="temp">Temporary</option>
-      <option value="casting">Casting</option>
-    </select>
+<label>الفني:</label>
+<select id="technician"></select>
 
-    <label>الفني:</label>
-    <select id="technician" required></select>
+<label>ملاحظات:</label>
+<textarea id="notes"></textarea>
 
-    <label>ملاحظات:</label>
-    <textarea id="notes"></textarea>
+<div id="qrArea" style="text-align:center; margin-top:20px;"></div>
 
-    <label>رقم توزيع الحالة:</label>
-    <input id="caseNumber" type="text" readonly>
-
-    <div id="qrPreview"></div>
-
-    <button type="submit" class="btn">حفظ الحالة</button>
-  </form>
+<button class="btn" onclick="saveCase()">حفظ الحالة</button>
 
 </div>
 
-<script type="module">
-  import { saveCaseToCloud } from "./firebase.js";
-
-  const techniciansByDept = {
-    cadcam: ["قاسم عسيري","أحمد كوشان","عبدالله الرشيد","عبدالله الشهراني","أحمد القحطاني","يحيى عسيري"],
+<script>
+// ------------ قائمة الفنين --------------
+const technicians = {
+    cadcam: ["قاسم عسيري","أحمد كوشان","عبدالله الرشيد","أحمد القحطاني"],
     pfm: ["سلطان الاحمري","أيمن الشهري","فيصل الوادعي"],
     ortho: ["تركي الشهري","وليد الشهري","أسامة عسيري"],
-    removable: ["رشيد الكثيري","أحمد الصخري","عبداللطيف عسيري","محمد الشرفان","الاء","هيام","محمد الغامدي","منصور العويرضي","عبدالله الغامدي"],
-    temp: ["أحمد الشبل","وليد السويري","فهد العتيبي","عبدالله العود"],
-    casting: ["فهد الخميس"]
-  };
+    removable: ["رشيد الكثيري","أحمد الصخري","عبداللطيف عسيري","الاء","هيام"],
+    temp: ["أحمد الشبل","وليد السويري","فهد العتيبي"]
+};
 
-  const vacationList = ["تركي الشهري","سلطان الاحمري","يحيى عسيري"];
+const vacations = ["تركي الشهري","سلطان الاحمري","يحيى عسيري"];
 
-  const deptSelect = document.getElementById("department");
-  const techSelect = document.getElementById("technician");
-  const rejectBox = document.getElementById("rejectBox");
-
-  deptSelect.addEventListener("change", () => {
-    const dept = deptSelect.value;
+// ------------ تغيير الفني حسب القسم ----------
+document.getElementById("department").addEventListener("change", function() {
+    let dept = this.value;
+    let techSelect = document.getElementById("technician");
     techSelect.innerHTML = "";
 
     if (!dept) return;
 
-    techniciansByDept[dept].forEach(t => {
-      let opt = document.createElement("option");
-      opt.value = t;
-      opt.textContent = t;
+    technicians[dept].forEach(t => {
+        let opt = document.createElement("option");
+        opt.value = t;
 
-      if (vacationList.includes(t)) {
-        opt.disabled = true;
-        opt.textContent += " (إجازة)";
-        opt.style.color = "orange";
-      }
+        if (vacations.includes(t)) {
+            opt.textContent = t + " (إجازة)";
+            opt.disabled = true;
+            opt.style.color = "orange";
+        } else {
+            opt.textContent = t;
+        }
 
-      techSelect.appendChild(opt);
+        techSelect.appendChild(opt);
     });
-  });
+});
 
-  document.getElementById("caseMainType").addEventListener("change", () => {
-    const type = document.getElementById("caseMainType").value;
-    rejectBox.style.display = (type === "adjust") ? "block" : "none";
-  });
+// ----------- اظهار تنبيه حالة مرفوضة ----------
+document.getElementById("caseType").addEventListener("change", function() {
+    document.getElementById("rejectAlert").style.display =
+        (this.value === "adjust") ? "block" : "none";
+});
 
-  function generateCaseNumber() {
-    const num = "LABX-" + Date.now();
-    document.getElementById("caseNumber").value = num;
-    return num;
-  }
+// ----------- حفظ الحالة (LocalStorage فقط للعرض) ----------
+function saveCase() {
 
-  function generateQR(text) {
-    document.getElementById("qrPreview").innerHTML = "";
-    new QRCode(document.getElementById("qrPreview"), {
-      text,
-      width: 140,
-      height: 140
-    });
-  }
-
-  generateCaseNumber();
-
-  document.getElementById("caseForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const data = {
-      caseNumber: document.getElementById("caseNumber").value,
-      patientName: document.getElementById("patientName").value,
-      fileNumber: document.getElementById("fileNumber").value,
-      doctorName: document.getElementById("doctorName").value,
-      assistantName: document.getElementById("assistantName").value,
-      clinicNumber: document.getElementById("clinicNumber").value,
-      caseType: document.getElementById("caseMainType").value,
-      department: deptSelect.value,
-      technician: techSelect.value,
-      notes: document.getElementById("notes").value,
-      createdDate: new Date().toLocaleDateString("en-GB"),
-      createdTime: new Date().toLocaleTimeString("en-GB")
+    const caseData = {
+        patient: patientName.value,
+        file: fileNumber.value,
+        doctor: doctorName.value,
+        assistant: assistantName.value,
+        clinic: clinicNumber.value,
+        type: caseType.value,
+        dept: department.value,
+        tech: technician.value,
+        notes: notes.value,
+        created: new Date().toLocaleString("en-GB")
     };
 
-    await saveCaseToCloud(data);
+    // حفظ محلي للعرض فقط
+    localStorage.setItem("lastCase", JSON.stringify(caseData));
 
-    alert("✓ تم حفظ الحالة بنجاح");
+    alert("✓ تم حفظ الحالة (نسخة GitHub فقط — بدون Firebase)");
 
-    generateQR(`
-      Case: ${data.caseNumber}
-      Patient: ${data.patientName}
-      File: ${data.fileNumber}
-      Dept: ${data.department}
-      Tech: ${data.technician}
-    `);
-  });
+    // QR
+    document.getElementById("qrArea").innerHTML = "";
+    new QRCode(document.getElementById("qrArea"), {
+        text: JSON.stringify(caseData),
+        width: 150,
+        height: 150
+    });
+}
 
 </script>
 
